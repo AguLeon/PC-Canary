@@ -138,8 +138,6 @@ RUN mkdir -p ~/miniconda3 && \
 
 # 配置环境变量
 RUN echo 'export DISPLAY=:4' >> ~/.bashrc && \
-    echo 'export http_proxy=http://10.29.46.139:7890' >> ~/.bashrc && \
-    echo 'export https_proxy=http://10.29.46.139:7890' >> ~/.bashrc && \
     echo 'export XDG_SESSION_TYPE=x11' >> ~/.bashrc && \
     echo 'export PATH=/opt/TurboVNC/bin:$PATH' >> ~/.bashrc && \
     echo 'export WIDTH=1024' >> ~/.bashrc && \
@@ -147,6 +145,8 @@ RUN echo 'export DISPLAY=:4' >> ~/.bashrc && \
 #     echo 'export DISPLAY=:1' >> ~/.bashrc && \
 #     echo 'export VGL_DISPLAY=:0' >> ~/.bashrc && \
 #     echo 'alias vglrun="/opt/VirtualGL/bin/vglrun"' >> ~/.bashrc
+    # echo 'export http_proxy=http://10.29.46.139:7890' >> ~/.bashrc && \
+    # echo 'export https_proxy=http://10.29.46.139:7890' >> ~/.bashrc && \
 
 
 # 设置启动命令
