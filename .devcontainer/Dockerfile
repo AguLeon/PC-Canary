@@ -7,10 +7,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 # ENV NVIDIA_DRIVER_CAPABILITIES alls
 WORKDIR /workspace
 
-# 使用国内镜像源以加速下载
-RUN sed -i 's@archive.ubuntu.com@mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list && \
-    sed -i 's@security.ubuntu.com@mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list
-
 # 更新并安装基础工具
 RUN apt update && \
     apt install -yq \
@@ -27,7 +23,9 @@ RUN apt update && \
         locales \
         net-tools \
         netcat \
-        software-properties-common
+        software-properties-common \
+        rsync
+
 
 # 配置语言环境
 RUN locale-gen en_US.UTF-8
