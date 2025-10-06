@@ -97,6 +97,13 @@ RUN apt update && apt install -y \
     galculator
     
 
+# Installing Additional langauge/packages
+ENV NODE_VERSION=22
+# ENV NUM_DIR=/root/.nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+RUN . "$HOME/.nvm/nvm.sh" && nvm install ${NODE_VERSION}
+
+
 # Install noVNC 
 RUN git clone --branch v1.5.0 https://github.com/novnc/noVNC.git /opt/noVNC && \
     git clone --branch v0.12.0 https://github.com/novnc/websockify /opt/noVNC/utils/websockify && \
