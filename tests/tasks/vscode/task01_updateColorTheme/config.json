@@ -45,15 +45,15 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "to": "./vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",
-            "to": "/root/.vscode/"
+            "to": "./.vscode/"
         },
         {
             "from": "tests/context_data/vscode/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "to": "./C-Plus-Plus"
         }
     ]
 }
