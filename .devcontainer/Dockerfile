@@ -102,12 +102,13 @@ RUN apt update && apt install -y \
 ENV NODE_VERSION=22
 # ENV NUM_DIR=/root/.nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-RUN . "$HOME/.nvm/nvm.sh" && nvm install ${NODE_VERSION}
 
 # Ensure that nvm is sourced in the shell environment and install Node.js
 RUN echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc && \
     echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> ~/.bashrc && \
     echo 'export PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH"' >> ~/.bashrc
+
+RUN . "$HOME/.nvm/nvm.sh" && nvm install ${NODE_VERSION}
 
 RUN npm install -g yarn
 RUN npm install -g node-gyp
