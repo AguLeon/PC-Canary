@@ -87,6 +87,7 @@ RUN apt update && apt install -y \
     libxmlsec1-dev \
     libffi-dev \
     liblzma-dev \
+    libkrb5-dev \
     # USER apps
     # libreoffice \
     # firefox-esr \
@@ -103,6 +104,12 @@ ENV NODE_VERSION=22
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 RUN . "$HOME/.nvm/nvm.sh" && nvm install ${NODE_VERSION}
 
+# Ensure that nvm is sourced in the shell environment and install Node.js
+RUN echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc && \
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> ~/.bashrc && \
+    echo 'export PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH"' >> ~/.bashrc
+
+RUN npm install -g node-gyp
 
 # Install noVNC 
 RUN git clone --branch v1.5.0 https://github.com/novnc/noVNC.git /opt/noVNC && \
