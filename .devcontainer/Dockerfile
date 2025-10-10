@@ -1,13 +1,14 @@
 FROM ubuntu:22.04
 
-# 设置工作目录
+# Set working directory
 SHELL [ "bash", "-c" ]
 ENV DEBIAN_FRONTEND=noninteractive
 # ENV NVIDIA_VISIBLE_DEVICES all
 # ENV NVIDIA_DRIVER_CAPABILITIES alls
+
 WORKDIR /workspace
 
-# 更新并安装基础工具
+# Update and install essential tools
 RUN apt update && \
     apt install -yq \
         ffmpeg \
@@ -27,13 +28,13 @@ RUN apt update && \
         rsync
 
 
-# 配置语言环境
+# Configure locale settings
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# 安装 X11 核心组件（比完整桌面环境更轻量）
+# Install core X11 components (lighter than a full desktop environment)
 RUN apt install -y \
     xserver-xorg \
     xauth \
@@ -47,7 +48,7 @@ RUN apt install -y \
     scrot \
     imagemagick
 
-# 安装 Xfce4 轻量级桌面环境
+# Install lightweight desktop environment Xfce4
 RUN apt install -y \
     xubuntu-desktop
 #     xfce4 \
@@ -62,14 +63,14 @@ RUN apt install -y \
 #     xfce4-goodies \
 #     elementary-xfce-icon-theme
 
-# # 安装 NVIDIA 驱动和库（使用通配符以适应不同系统）
+# Install NVIDIA drivers and libraries (wildcard to suit various systems)
 # RUN apt update && \
 #     apt install -y \
 #     nvidia-driver-530 \
 #     libnvidia-gl-530 \
 #     nvidia-cuda-toolkit 
     
-# 安装依赖
+# Install dependencies
 RUN apt update && apt install -y \
     libglu1-mesa \
     libxv1 \
@@ -97,35 +98,39 @@ RUN apt update && apt install -y \
     unzip \
     galculator
 
-# Install noVNC 
+# Install noVNC (for web-based access)
 RUN git clone --branch v1.5.0 https://github.com/novnc/noVNC.git /opt/noVNC && \
     git clone --branch v0.12.0 https://github.com/novnc/websockify /opt/noVNC/utils/websockify && \
     ln -s /opt/noVNC/vnc.html /opt/noVNC/index.html
 # RUN wget https://github.com/VirtualGL/virtualgl/releases/download/3.1.2/virtualgl_3.1.2_amd64.deb
 # RUN dpkg -i virtualgl_3.1.2_amd64.deb
-# # RUN rm virtualgl_3.1.2_amd64.deb
+# RUN rm virtualgl_3.1.2_amd64.deb
 
 RUN wget https://github.com/TurboVNC/turbovnc/releases/download/3.1.4/turbovnc_3.1.4_amd64.deb
 RUN dpkg -i turbovnc_3.1.4_amd64.deb
 # RUN rm turbovnc_3.1.4_amd64.deb
 
-# 添加用户并配置权限
+# Create a new user and configure permissions
 RUN groupadd vglusers
 RUN useradd -m agent
 RUN usermod -aG sudo,video,vglusers agent
 RUN echo 'agent:123' | chpasswd
 
-# 配置 VirtualGL
+# Set up VirtualGL (for OpenGL rendering in virtual environments)
 # RUN mkdir -p /etc/opt/VirtualGL && \
 #     echo "export VGL_DISPLAY=:0" > /etc/opt/VirtualGL/vgl_xauth_key && \
 #     chmod 644 /etc/opt/VirtualGL/vgl_xauth_key 
     # /opt/VirtualGL/bin/vglserver_config -config +s +f -t
 
-# 设置 TurboVNC 配置
+# Configure TurboVNC settings
 # RUN echo "useVGL=true" >> /etc/turbovncserver.conf
 USER agent
 ENV USER=agent
 SHELL [ "bash", "-c" ]
+
+
+# Install Ollama (for local LLM serving)
+RUN curl -fsSL https://ollama.com/install.sh | bash
 
 # Installing Additional langauge/packages
 ENV NODE_VERSION=22
@@ -144,14 +149,14 @@ RUN . "$HOME/.nvm/nvm.sh" && nvm install ${NODE_VERSION}
 RUN . "$HOME/.nvm/nvm.sh" && node --version && npm --version && npm install -g yarn node-gyp
 
 
-# 安装和配置 Miniconda
+# Install and configure Miniconda
 RUN mkdir -p ~/miniconda3 && \
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh && \
     bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3 && \
     rm ~/miniconda3/miniconda.sh && \
     ~/miniconda3/bin/conda init --all
 
-# 配置环境变量
+# Set environment variables for display and TurboVNC
 RUN echo 'export DISPLAY=:4' >> ~/.bashrc && \
     echo 'export XDG_SESSION_TYPE=x11' >> ~/.bashrc && \
     echo 'export PATH=/opt/TurboVNC/bin:$PATH' >> ~/.bashrc && \
@@ -164,7 +169,7 @@ RUN echo 'export DISPLAY=:4' >> ~/.bashrc && \
     # echo 'export https_proxy=http://10.29.46.139:7890' >> ~/.bashrc && \
 
 
-# 设置启动命令
+# Set startup command for the VNC server
 USER agent
 
 RUN mkdir /home/agent/.vnc/
