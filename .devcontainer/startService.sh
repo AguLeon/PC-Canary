@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Setup VNC password
+mkdir -p ~/.vnc
+echo "12345678" | vncpasswd -f > ~/.vnc/passwd
+chmod 600 ~/.vnc/passwd
+
 # Run the VNC Server
 vncserver -xstartup ~/.vnc/xstartup -geometry 1024x768 :4
 
