@@ -110,6 +110,9 @@ RUN wget https://github.com/TurboVNC/turbovnc/releases/download/3.1.4/turbovnc_3
 RUN dpkg -i turbovnc_3.1.4_amd64.deb
 # RUN rm turbovnc_3.1.4_amd64.deb
 
+# Install Ollama (for local LLM serving)
+RUN curl -fsSL https://ollama.com/install.sh | bash
+
 # Create a new user and configure permissions
 RUN groupadd vglusers
 RUN useradd -m agent
@@ -127,10 +130,6 @@ RUN echo 'agent:123' | chpasswd
 USER agent
 ENV USER=agent
 SHELL [ "bash", "-c" ]
-
-
-# Install Ollama (for local LLM serving)
-RUN curl -fsSL https://ollama.com/install.sh | bash
 
 # Installing Additional langauge/packages
 ENV NODE_VERSION=22
