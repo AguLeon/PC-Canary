@@ -8,6 +8,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /workspace
 
+COPY ./entrypoint.sh .
+RUN chmod +x /entrypoint.sh
+
 # Update and install essential tools
 RUN apt update && \
     apt install -yq \
@@ -181,3 +184,5 @@ unset SESSION_MANAGER\n \
 unset DBUS_SESSION_BUS_ADDRESS\n \
 x-session-manager & xfdesktop & xfce4-panel & xfce4-menu-plugin & xfsettingsd & xfconfd & xfwm4' > /home/agent/.vnc/xstartup && \
 chmod +x /home/agent/.vnc/xstartup
+
+ENTRYPOINT ["entrypoint.sh"]
