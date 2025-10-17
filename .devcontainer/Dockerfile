@@ -89,6 +89,7 @@ RUN apt update && apt install -y \
     libffi-dev \
     liblzma-dev \
     libkrb5-dev \
+    libxkbfile-dev \
     # USER apps
     # libreoffice \
     # firefox-esr \
