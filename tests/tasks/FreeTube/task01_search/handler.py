@@ -40,13 +40,18 @@ def set_evaluator(evaluator):
             # 提供一个默认配置以避免空引用
             _CONFIG = {"task_parameters": {"query": "porsche"}}
 
-def message_handler(message: Dict[str, Any], data: Any) -> Optional[str]:
+def message_handler(
+    message: Dict[str, Any],
+    logger: Optional[Any] = None,
+    task_parameters: Optional[Dict[str, Any]] = None,
+) -> Optional[str]:
     """
     处理从钩子脚本接收的消息
     
     Args:
         message: injector消息对象
-        data: 附加数据
+        logger: 评估器日志记录器
+        task_parameters: 任务配置参数
         
     Returns:
         str: 如果任务成功完成返回"success"，否则返回None
@@ -62,26 +67,45 @@ def message_handler(message: Dict[str, Any], data: Any) -> Optional[str]:
         print("警告: 评估器未设置，无法处理消息")
         return None
     
+    # 使用传递进来的 logger 优先，其次退回到评估器自带 logger
+    active_logger = logger or getattr(_EVALUATOR, "logger", None)
+
+    # 合并传入的 task_parameters 与配置文件中的参数
+    effective_config = _CONFIG or {}
+    if task_parameters:
+        effective_config = {
+            **effective_config,
+            "task_parameters": {
+                **effective_config.get("task_parameters", {}),
+                **task_parameters,
+            },
+        }
+
     event_type = message.get('event_type')
     if event_type == 'search_by_enter' or event_type == 'click_search_button':
         input_data = message.get('inputData')
-        _EVALUATOR.logger.info(message.get('message') + ": " + input_data)
-        expected_query = _CONFIG.get("task_parameters", {}).get("query", "porsche")
+        if active_logger:
+            active_logger.info(message.get('message') + ": " + input_data)
+        expected_query = effective_config.get("task_parameters", {}).get("query", "porsche")
         if input_data == expected_query:
             _EVALUATOR.update_metric("success", True)
             # update time
             completion_time = time.time() - _START_TIME
             _EVALUATOR.update_metric("time_to_complete", completion_time)
-            _EVALUATOR.logger.info(f"任务成功完成! 耗时: {completion_time:.2f} 秒")
+            if active_logger:
+                active_logger.info(f"任务成功完成! 耗时: {completion_time:.2f} 秒")
             return "success"
     elif event_type == 'hook_keyDown_and_hit_option':
-        _EVALUATOR.logger.info(message.get('message'))
+        if active_logger:
+            active_logger.info(message.get('message'))
         _EVALUATOR.update_metric("hook_keyDown_and_hit_option", True)
     elif event_type == 'hook_search_button':
-        _EVALUATOR.logger.info(message.get('message'))
+        if active_logger:
+            active_logger.info(message.get('message'))
         _EVALUATOR.update_metric("hook_search_button", True)
     elif event_type == 'error':
-        _EVALUATOR.logger.error(f"钩子脚本错误: {message.get('message')}")
+        if active_logger:
+            active_logger.error(f"钩子脚本错误: {message.get('message')}")
     
     return None
 
