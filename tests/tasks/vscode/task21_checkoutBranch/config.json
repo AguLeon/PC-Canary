@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "21",
+    "task_name": "checkout_branch",
+    "description": "在vscode中切换当前工作区的git分支",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,12 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "branch_name": "gh-pages",
+        "commit_message": "temp commit for checkout",
+        "origin_branch": "master"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在vscode当前打开的工作区中切换当前工作区的git分支为 ${branch_name}, 如果当前含有没有提交的修改, 则将所有的修改提交, 提交的message填写 ${commit_message} (你需要确定当前vscode打开的工作目录路径, 调用bash并不会在当前vscode的工作目录执行命令)",
 
     "evaluation_setup": {
         "scripts": [
@@ -30,10 +32,10 @@
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+            "description": "在任务完成时检查git信息",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "任务成功完成"
         }
     },
     "mcp_servers": [

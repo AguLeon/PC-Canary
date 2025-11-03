@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "06",
+    "task_name": "gitCommit",
+    "description": "在vscode的工作区将所有的修改",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,10 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "commit_message": "fix bugs"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在vscode当前打开的工作区中提交所有未提交的修改, 并且commit的信息是 ${commit_message}",
 
     "evaluation_setup": {
         "scripts": [
@@ -24,16 +24,16 @@
         "evaluator_type": "IpcInjector",
         "evaluate_on_completion": true
     },
-    "total_key_steps": 1,
+    "total_key_steps": 2,
     "preconditions": {
         "vscode_running": true
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+            "description": "在任务结束时判断是否所有的修改已经提交",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "在任务结束时检查任务是否完成"
         }
     },
     "mcp_servers": [

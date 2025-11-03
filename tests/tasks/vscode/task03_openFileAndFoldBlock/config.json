@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "03",
+    "task_name": "open_file_and_fold_block",
+    "description": "在vscode工作区中打开文件并且折叠所有代码块",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,12 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "file_name": "binary_search.cpp",
+
+        "expected_file_path": "/root/C-Plus-Plus/search/binary_search.cpp"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在vscode当前工作区中打开名为 ${file_name} 的文件, 并且折叠文件内所有的代码块",
 
     "evaluation_setup": {
         "scripts": [
@@ -24,16 +26,22 @@
         "evaluator_type": "IpcInjector",
         "evaluate_on_completion": true
     },
-    "total_key_steps": 1,
+    "total_key_steps": 2,
     "preconditions": {
         "vscode_running": true
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+            "description": "在任务结束时判断工作区状态是否符合预期",
+            "is_key_step": true,
+            "key_step_index": 2,
+            "key_step_name": "在任务结束时判断当前页面的状态"
+        },
+        "open_file": {
+            "description": "打开文件",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "在vscode中打开文件"
         }
     },
     "mcp_servers": [

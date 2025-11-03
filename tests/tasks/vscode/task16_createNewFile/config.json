@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "16",
+    "task_name": "create_new_file",
+    "description": "在vscode当前工作区中某个目录下创建新文件",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,10 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "file": "doc/js/hello_world.js"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在vscode当前工作区中创建新的空文件 ${file}, 如果没有目录, 同时创建目录",
 
     "evaluation_setup": {
         "scripts": [
@@ -30,10 +30,10 @@
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+            "description": "在任务结束时检查任务是否完成",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "任务成功完成"
         }
     },
     "mcp_servers": [

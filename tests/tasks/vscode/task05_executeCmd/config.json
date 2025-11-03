@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "05",
+    "task_name": "execute_command_in_vscode_terminal",
+    "description": "在vscode中打开终端, 并且在终端执行命令",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,11 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "dir": "/root/C-Plus-Plus/data_structures",
+        "cmd": "tree"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在vscode当前工作区中打开终端, 并且在终端中切换到 ${dir} 目录下执行命令 ${cmd}",
 
     "evaluation_setup": {
         "scripts": [
@@ -22,18 +23,24 @@
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
-        "evaluate_on_completion": true
+        "evaluate_on_completion": false
     },
-    "total_key_steps": 1,
+    "total_key_steps": 2,
     "preconditions": {
         "vscode_running": true
     },
     "events": {
-        "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+        "command_execute": {
+            "description": "检测到终端执行命令",
+            "is_key_step": true,
+            "key_step_index": 2,
+            "key_step_name": "在终端执行命令"
+        },
+        "create_terminal": {
+            "description": "检测到创建新的终端",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "创建终端"
         }
     },
     "mcp_servers": [

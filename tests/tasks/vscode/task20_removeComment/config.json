@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "20",
+    "task_name": "removeComment",
+    "description": "在vscode中打开文件, 并且移除文件中所有的注释",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,11 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "file": "get_size_of_linked_list.cpp",
+        "expected_file_path": "/root/C-Plus-Plus/operations_on_datastructures/get_size_of_linked_list.cpp"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在当前vscode打开的工作区中打开 ${file} 文件, 删除文件中所有的注释, 其他内容保持不变",
 
     "evaluation_setup": {
         "scripts": [
@@ -24,16 +25,22 @@
         "evaluator_type": "IpcInjector",
         "evaluate_on_completion": true
     },
-    "total_key_steps": 1,
+    "total_key_steps": 2,
     "preconditions": {
         "vscode_running": true
     },
     "events": {
-        "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+        "open_file": {
+            "description": "成功打开目标文件",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "打开文件"
+        },
+        "evaluate_on_completion": {
+            "description": "在任务完成时检查文件状态",
+            "is_key_step": true,
+            "key_step_index": 2,
+            "key_step_name": "任务成功完成"
         }
     },
     "mcp_servers": [

@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "14",
+    "task_name": "edit_tab_size",
+    "description": "在vscode中将当前工作区的tab大小设置为2",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,10 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "tab_size": 2
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在vscode中仅将当前工作区的tab大小设置为 ${tab_size}",
 
     "evaluation_setup": {
         "scripts": [
@@ -24,16 +24,22 @@
         "evaluator_type": "IpcInjector",
         "evaluate_on_completion": true
     },
-    "total_key_steps": 1,
+    "total_key_steps": 2,
     "preconditions": {
         "vscode_running": true
     },
     "events": {
-        "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+        "open_file": {
+            "description": "任务开始时读取settings.json文件内容",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "成功打开配置文件"
+        },
+        "evaluate_on_completion": {
+            "description": "在任务结束时判断settings.json配置文件是否符合预期",
+            "is_key_step": true,
+            "key_step_index": 2,
+            "key_step_name": "任务成功完成"
         }
     },
     "mcp_servers": [

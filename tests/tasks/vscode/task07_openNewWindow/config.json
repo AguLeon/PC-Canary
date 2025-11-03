@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "07",
+    "task_name": "open_new_window",
+    "description": "将指定目录在一个新的vscode应用窗口中打开",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,10 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "work_space_dir": "/root/C-Plus-Plus/data_structures"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在当前vscode窗口上附加新的窗口, 并且在新窗口打开目录 ${work_space_dir}",
 
     "evaluation_setup": {
         "scripts": [
@@ -22,18 +22,18 @@
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
-        "evaluate_on_completion": true
+        "evaluate_on_completion": false
     },
     "total_key_steps": 1,
     "preconditions": {
         "vscode_running": true
     },
     "events": {
-        "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+        "get_work_spaces": {
+            "description": "获取已经打开的工作区的目录",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "成功打开工作区"
         }
     },
     "mcp_servers": [

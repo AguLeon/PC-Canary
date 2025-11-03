@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "13",
+    "task_name": "open_file",
+    "description": "在vscode中打开文件, 并且定位光标",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,13 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "filename": "recursive_bubble_sort.cpp",
+        "expected_file_path": "/root/C-Plus-Plus/sorting/recursive_bubble_sort.cpp",
+        "function_name": "recursive_bubble_sort",
+        "expected_line": 84
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在当前vscode打开的工作区中找到名为 ${filename} 的文件, 打开并把光标定位 ${function_name} 定义的位置",
 
     "evaluation_setup": {
         "scripts": [
@@ -24,16 +27,22 @@
         "evaluator_type": "IpcInjector",
         "evaluate_on_completion": true
     },
-    "total_key_steps": 1,
+    "total_key_steps": 2,
     "preconditions": {
         "vscode_running": true
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+            "description": "在任务完成时检查debug会话的状态",
+            "is_key_step": true,
+            "key_step_index": 2,
+            "key_step_name": "任务成功完成"
+        },
+        "open_file": {
+            "description": "成功打开目标文件",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "打开文件"
         }
     },
     "mcp_servers": [

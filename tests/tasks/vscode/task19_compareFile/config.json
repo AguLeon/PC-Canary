@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "19",
+    "task_name": "compare_files",
+    "description": "在vscode中对比两个文件有什么不同",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,13 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "file_name1": "quick_sort.cpp",
+        "file_name2": "quick_sort_3.cpp",
+        "file1": "/root/C-Plus-Plus/sorting/quick_sort.cpp",
+        "file2": "/root/C-Plus-Plus/sorting/quick_sort_3.cpp"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "使用vscode中的找到文件 ${file_name1} 和 ${file_name2}, 并且使用比较文件内容的功能对比两个文件",
 
     "evaluation_setup": {
         "scripts": [
@@ -30,10 +33,10 @@
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+            "description": "在任务结束时检查任务是否完成",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "任务成功完成"
         }
     },
     "mcp_servers": [

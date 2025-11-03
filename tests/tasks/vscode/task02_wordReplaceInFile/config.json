@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "02",
+    "task_name": "word_replace_in_file",
+    "description": "在vscode工作区文件中打开文件并且进行内容替换",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,14 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "file_name": "bubble_sort.cpp",
+        "origin_name": "swap_check",
+        "expected_name": "swap_flag",
+
+        "expected_path": "/root/C-Plus-Plus/sorting/bubble_sort.cpp"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在vscode当前的工作区中找到并打开名为 ${file_name} 的文件, 将文件中名为 ${origin_name} 的内容替换为 ${expected_name}, 请注意文件的保存",
 
     "evaluation_setup": {
         "scripts": [
@@ -24,16 +28,26 @@
         "evaluator_type": "IpcInjector",
         "evaluate_on_completion": true
     },
-    "total_key_steps": 1,
+    "total_key_steps": 2,
     "preconditions": {
         "vscode_running": true
     },
     "events": {
-        "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+        "open_file": {
+            "description": "打开文件",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "在vscode中打开文件"
+        },
+        "evaluate_on_completion": {
+            "description": "任务结束时读取文件内容",
+            "is_key_step": true,
+            "key_step_index": 2,
+            "key_step_name": "任务结束判断文件内容是否正确"
+        },
+        "read_origin_content": {
+            "description": "在任务开始时读取文件内容",
+            "is_key_step": false
         }
     },
     "mcp_servers": [

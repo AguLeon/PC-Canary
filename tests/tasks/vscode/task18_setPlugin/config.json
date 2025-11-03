@@ -1,7 +1,7 @@
 {
-    "task_id": "01",
-    "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "task_id": "18",
+    "task_name": "create_new_file",
+    "description": "在vscode中安装插件, 并且进行设置",
 
     "application_info": {
         "name": "vscode",
@@ -10,10 +10,12 @@
     },
 
     "task_parameters": {
-        "theme": "Default Light+"
+        "plugin_name": "TODO Highlight",
+        "instruction": "配置插件为大小写不敏感",
+        "value": false
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "在vscode中安装名为 ${plugin_name} 插件, 并且 ${instruction}",
 
     "evaluation_setup": {
         "scripts": [
@@ -24,16 +26,22 @@
         "evaluator_type": "IpcInjector",
         "evaluate_on_completion": true
     },
-    "total_key_steps": 1,
+    "total_key_steps": 2,
     "preconditions": {
         "vscode_running": true
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+            "description": "在任务结束时检查任务是否完成",
+            "is_key_step": true,
+            "key_step_index": 2,
+            "key_step_name": "任务成功完成"
+        },
+        "plugin_installed": {
+            "description": "在任务结束时检查插件是否安装",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "插件成功安装"
         }
     },
     "mcp_servers": [
@@ -48,7 +56,7 @@
             "to": "/root/vscode_user_data_dir"
         },
         {
-            "from": "tests/context_data/vscode/extensions",
+            "from": "tests/context_data/vscode/task18/extensions",
             "to": "/root/.vscode/"
         },
         {
