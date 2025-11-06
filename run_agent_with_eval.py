@@ -35,14 +35,12 @@ evaluation_finished = False
 
 def handle_evaluator_event(event_data: CallbackEventData, evaluator: BaseEvaluator = None):
     """Callback function to handle evaluator events"""
-    print(f"\nReceived evaluator event: {
-          event_data.event_type} - {event_data.message}")
+    print(f"\nReceived evaluator event: {event_data.event_type} - {event_data.message}")
 
     global evaluation_finished
 
     if event_data.event_type == "task_completed":
-        print(f"Evaluator reported successful task completion: {
-              event_data.message}")
+        print(f"Evaluator reported successful task completion: {event_data.message}")
         evaluation_finished = True  # Signal loop termination
 
     elif event_data.event_type == "task_error":
@@ -71,8 +69,7 @@ def _generate_report(evaluator, agent_success):
     print("\nResult Comparison:")
     print(
         f"- Agent system result: {'Success' if agent_success else 'Failure'}")
-    print(f"- Evaluator result: {'Success' if eval_success else 'Failure'} (Status: {
-          final_status.get('status', 'Unknown')})")
+    print(f"- Evaluator result: {'Success' if eval_success else 'Failure'} (Status: {final_status.get('status', 'Unknown')})")
 
     # Check consistency
     is_consistent = (agent_success == eval_success)
