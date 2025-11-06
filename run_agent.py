@@ -2,38 +2,38 @@
 # -*- coding: utf-8 -*-
 
 """
-Telegram搜索任务测试程序 - 使用代码执行环境控制器
+Telegram Search Task Test Program - Using Code Execution Environment Controller
 """
 
 import os
 import sys
 import time
+# from PIL import Image, ImageGrab
 import argparse
-from PIL import Image, ImageGrab
 
-# 导入Agent相关模块
+# Import Agent-related modules
 from agent.base_agent import BaseAgent
 from agent.models.openai_model import OpenAIModel
 from agent.models.gemini_model import GeminiModel
 from agent.models.claude_model import ClaudeModel
 
-# 导入控制器
+# Import controller
 from env.controller.code_execution_controller import CodeExecutionController
 
-# 导入新的日志系统
+# Import new logging system
 from utils.logger import AgentLogger
 
 
 def create_model(model_type, api_key):
     """
-    创建模型实例
-    
+    Create model instance
+
     Args:
-        model_type: 模型类型 ('openai' 或 'gemini')
-        api_key: API密钥
-        
+        model_type: Type of model ('openai' or 'gemini')
+        api_key: API key
+
     Returns:
-        模型实例
+        Model instance
     """
     if model_type.lower() == 'openai':
         return OpenAIModel(
@@ -61,7 +61,8 @@ def create_model(model_type, api_key):
         if not api_key:
             api_key = os.environ.get('ANTHROPIC_API_KEY')
         if not api_key:
-            raise ValueError("使用 Claude 模型需要提供 API Key (通过 --api_key 或 ANTHROPIC_API_KEY 环境变量)")
+            raise ValueError(
+                "Using the Claude model requires an API Key (via --api_key or ANTHROPIC_API_KEY environment variable)")
         return ClaudeModel(
             api_key=api_key,
             model_name="claude-3-7-sonnet-latest",
@@ -69,213 +70,230 @@ def create_model(model_type, api_key):
             max_tokens=2048,
         )
     else:
-        raise ValueError(f"不支持的模型类型: {model_type}")
+        raise ValueError(f"Unsupported model type: {model_type}")
 
 
 def test_agent_telegram_search(model_type='openai', api_key=None, max_steps=10):
     """
-    测试Agent执行任务
-    
+    Test Agent executing task
+
     Args:
-        model_type: 模型类型 ('openai' 或 'gemini')
-        api_key: API密钥 (如果为None，则尝试从环境变量获取)
-        max_steps: 最大执行步骤数
-        
+        model_type: Model type ('openai' or 'gemini')
+        api_key: API key (if None, it will attempt to fetch from environment variables)
+        max_steps: Maximum number of execution steps
+
     Returns:
-        bool: 任务是否成功完成
+        bool: Whether the task was successfully completed
     """
-    # 检查API密钥
+    # Check API key
     if api_key is None:
         if model_type.lower() == 'openai':
             api_key = os.environ.get('OPENAI_API_KEY')
             if not api_key:
-                raise ValueError("未提供OpenAI API密钥，请设置OPENAI_API_KEY环境变量或直接传入api_key参数")
+                raise ValueError(
+                    "OpenAI API key not provided. Please set OPENAI_API_KEY environment variable or pass api_key argument")
         elif model_type.lower() == 'gemini':
             api_key = os.environ.get('GOOGLE_API_KEY')
             if not api_key:
-                raise ValueError("未提供Google API密钥，请设置GOOGLE_API_KEY环境变量或直接传入api_key参数")
+                raise ValueError(
+                    "Google API key not provided. Please set GOOGLE_API_KEY environment variable or pass api_key argument")
         elif model_type.lower() == 'qwen':
             api_key = os.environ.get('DASHSCOPE_API_KEY')
             if not api_key:
-                raise ValueError("未提供Dashscope API密钥，请设置DASHSCOPE_API_KEY环境变量或直接传入api_key参数")
-    
-    # 创建模型
+                raise ValueError(
+                    "Dashscope API key not provided. Please set DASHSCOPE_API_KEY environment variable or pass api_key argument")
+
+    # Create model
     model = create_model(model_type, api_key)
-    
-    # 创建代码执行环境控制器
+
+    # Create code execution environment controller
     controller = CodeExecutionController()
-    
-    # 创建Agent
-    agent = BaseAgent(model, observation_type="screenshot", action_space="pyautogui-muti-action")
-    
-    # 初始化日志系统
+
+    # Create Agent
+    agent = BaseAgent(model, observation_type="screenshot",
+                      action_space="pyautogui-muti-action")
+
+    # Initialize logging system
     logger = AgentLogger(base_log_dir="logs")
-    print(f"日志将保存到: {logger.session_dir}")
-    
-    # 定义Telegram搜索任务指令
+    print(f"Logs will be saved to: {logger.session_dir}")
+
+    # Define Telegram search task instructions
     instructions = """
-    任务：在Telegram应用中执行搜索操作
-    
-    步骤：
-    1. 启动Telegram应用程序（如果已打开，请确保它在前台）
-    2. 点击搜索按钮（通常位于应用程序顶部）
-    3. 在搜索框中输入"news"
-    4. 等待搜索结果显示
-    
-    注意事项：
-    - 你可以使用pyautogui库来控制鼠标和键盘
-    - 你可以使用WAIT命令来等待界面响应（例如：WAIT）
-    - 当任务完成时，请使用DONE命令
-    - 如果任务无法完成，请使用FAIL命令
-    - 你可以访问的环境变量和库：pyautogui, time, os, sys, re, json, PIL, ImageGrab
-    - 你可以通过controller变量访问控制器实例
+    Task: Perform a search operation in the Telegram application
+
+    Steps:
+    1. Launch the Telegram app (if already open, ensure it's in the foreground)
+    2. Click the search button (usually located at the top of the app)
+    3. Type "news" in the search box
+    4. Wait for the search results to appear
+
+    Notes:
+    - You can use the pyautogui library to control the mouse and keyboard
+    - You can use the WAIT command to wait for the interface response (e.g., WAIT)
+    - When the task is completed, use the DONE command
+    - If the task cannot be completed, use the FAIL command
+    - You have access to the following environment variables and libraries: pyautogui, time, os, sys, re, json, PIL, ImageGrab
+    - You can access the controller instance via the controller variable
     """
-    
-    # 记录任务开始
+
+    # Log task start
     logger.start_step(instructions)
-    
-    # 执行步骤
+
+    # Execute steps
     step_index = 0
     start_time = time.time()
-    
-    print(f"\n开始执行Telegram搜索任务，使用{model_type}模型\n")
-    print(f"任务指令:\n{instructions}\n")
-    
-    # 执行Agent循环
+
+    print(f"\nStarting Telegram search task, using {model_type} model\n")
+    print(f"Task instructions:\n{instructions}\n")
+
+    # Execute Agent loop
     while step_index < max_steps and not controller.task_completed and not controller.task_failed:
-        print(f"\n执行步骤 {step_index+1}/{max_steps}")
-        
-        # 开始新的步骤记录
+        print(f"\nExecuting step {step_index+1}/{max_steps}")
+
+        # Start new step logging
         if step_index > 0:
-            logger.start_step(f"执行步骤 {step_index+1}")
-        
-        # 获取观察
-        print("获取屏幕截图...")
+            logger.start_step(f"Executing step {step_index+1}")
+
+        # Get observation
+        print("Getting screenshot...")
         observation = controller.get_screenshot()
-        
-        # 保存截图到日志系统
+
+        # Save screenshot to logging system
         screenshot_path = logger.log_screenshot(observation)
-        print(f"截图已保存: {screenshot_path}")
-        
-        # 执行Agent决策
-        print("Agent开始决策...")
-        action, args, usage_info = agent.act(instructions, observation, controller)
-        
-        # Log action and potential args (like reasoning or errors)
+        print(f"Screenshot saved: {screenshot_path}")
+
+        # Perform Agent decision
+        print("Agent is deciding...")
+        action, args, usage_info = agent.act(
+            instructions, observation, controller)
+
+        # Log action and potential arguments (like reasoning or errors)
         logger.log_action(action, args)
-        
+
         # --- Handle different action types --- #
         if action == "finish":
-            print("Agent 报告任务完成 (finish)。")
+            print("Agent reports task completed (finish).")
             print(f"Reasoning: {args.get('reasoning', 'N/A')}" if args else "")
-            controller.task_completed = True # Mark controller state as well
-            break # Exit loop
+            controller.task_completed = True  # Mark controller state as well
+            break  # Exit loop
 
         elif action == "wait":
-            print("Agent 请求等待。")
+            print("Agent requests wait.")
             # Optionally add a sleep here based on args if provided
-            time.sleep(1) # Simple wait
-            continue # Go to next step without execution
+            time.sleep(1)  # Simple wait
+            continue  # Go to next step without execution
 
         elif action == "fail":
-            print("Agent 报告任务失败 (fail)。")
+            print("Agent reports task failed (fail).")
             print(f"Reasoning: {args.get('reasoning', 'N/A')}" if args else "")
             controller.task_failed = True
-            controller.failure_reason = args.get('reasoning', 'Agent reported FAIL') if args else 'Agent reported FAIL'
-            break # Exit loop
+            controller.failure_reason = args.get(
+                'reasoning', 'Agent reported FAIL') if args else 'Agent reported FAIL'
+            break  # Exit loop
 
         elif action is None:
-            print(f"Agent 决策或解析时出错: {args.get('error', 'Unknown error')}")
+            print(f"Agent decision or parsing error: {
+                  args.get('error', 'Unknown error')}")
             controller.task_failed = True
-            controller.failure_reason = args.get('error', 'Agent act returned None') if args else 'Agent act returned None'
-            break # Exit loop
+            controller.failure_reason = args.get(
+                'error', 'Agent act returned None') if args else 'Agent act returned None'
+            break  # Exit loop
 
         # --- If action is code, execute it --- #
         elif isinstance(action, str):
-            action_code = action # It's Python code
-            # 打印Agent思考和动作 (Thought is no longer returned directly)
-            print(f"\nAgent动作 (代码):")
+            action_code = action  # It's Python code
+            # Print Agent thinking and actions (Thought is no longer returned directly)
+            print(f"\nAgent action (code):")
             print("-" * 50)
-            print(action_code[:500] + ("..." if len(action_code) > 500 else ""))
+            print(action_code[:500] +
+                  ("..." if len(action_code) > 500 else ""))
             print("-" * 50)
 
-            # 执行代码并获取执行结果
+            # Execute code and get execution result
             execution_result = agent._execute_action(action_code, controller)
 
-            # 记录执行结果到日志系统
+            # Log execution result to the logging system
             logger.log_execution_result(execution_result)
         else:
-            print(f"未知的 Agent 动作类型: {action}")
+            print(f"Unknown Agent action type: {action}")
             controller.task_failed = True
             controller.failure_reason = f"Unknown action type: {action}"
             break
-        
-        # 检查是否超时
+
+        # Check if timeout
         elapsed_time = time.time() - start_time
-        if elapsed_time > 300:  # 5分钟超时
-            print("测试超时，终止执行")
+        if elapsed_time > 300:  # 5 minutes timeout
+            print("Test timed out, terminating execution")
             logger.end_session("timeout")
             break
-        
-        # 用户可以手动中断
-        print("\n按 'q' 退出，或按任意键继续...")
-        if sys.stdin.isatty():  # 检查是否在交互式终端
+
+        # User can manually interrupt
+        print("\nPress 'q' to quit, or press any key to continue...")
+        if sys.stdin.isatty():  # Check if in interactive terminal
             try:
-                import termios, tty, select
+                import termios
+                import tty
+                import select
                 old_settings = termios.tcgetattr(sys.stdin)
                 try:
                     tty.setcbreak(sys.stdin.fileno())
                     if select.select([sys.stdin], [], [], 0.5)[0]:
                         key = sys.stdin.read(1)
                         if key == 'q':
-                            print("用户手动终止测试")
+                            print("User manually terminated the test")
                             logger.end_session("user_terminated")
                             break
                 finally:
-                    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+                    termios.tcsetattr(
+                        sys.stdin, termios.TCSADRAIN, old_settings)
             except (ImportError, termios.error):
                 pass
-    
-    # 生成简单报告
+
+    # Generate simple report
     print("\n" + "="*50)
-    print("Agent测试执行报告")
+    print("Agent Test Execution Report")
     print("="*50)
-    print(f"执行步骤: {step_index+1}/{max_steps}")
-    print(f"执行时间: {time.time() - start_time:.2f} 秒")
-    print(f"执行状态: {'成功' if controller.task_completed else '失败' if controller.task_failed else '未完成'}")
+    print(f"Executed steps: {step_index+1}/{max_steps}")
+    print(f"Execution time: {time.time() - start_time:.2f} seconds")
+    print(f"Execution status: {
+          'Success' if controller.task_completed else 'Failure' if controller.task_failed else 'Not completed'}")
     if controller.task_failed:
-        print(f"失败原因: {controller.failure_reason}")
-    
-    print(f"\n完整日志已保存到: {logger.session_dir}")
-    print(f"报告文件: {os.path.join(logger.session_dir, 'session_report.md')}")
-    
+        print(f"Failure reason: {controller.failure_reason}")
+
+    print(f"\nComplete log has been saved to: {logger.session_dir}")
+    print(f"Report file: {os.path.join(
+        logger.session_dir, 'session_report.md')}")
+
     return controller.task_completed
 
 
 def main():
-    """主函数"""
-    parser = argparse.ArgumentParser(description="测试Agent执行Telegram搜索任务")
+    """Main function"""
+    parser = argparse.ArgumentParser(
+        description="Test Agent performing Telegram search task")
     parser.add_argument("--model", choices=["openai", "gemini", "qwen", "claude"], default="claude",
-                        help="使用的模型类型 (默认: openai)")
-    parser.add_argument("--api_key", type=str, help="API密钥 (如果未提供则从环境变量获取)")
-    parser.add_argument("--max_steps", type=int, default=10, help="最大执行步骤数 (默认: 10)")
-    
+                        help="Model type to use (default: claude)")
+    parser.add_argument("--api_key", type=str,
+                        help="API key (if not provided, it will be fetched from environment variables)")
+    parser.add_argument("--max_steps", type=int, default=10,
+                        help="Maximum number of steps to execute (default: 10)")
+
     args = parser.parse_args()
-    
+
     try:
-        # 测试Agent
+        # Test the agent
         success = test_agent_telegram_search(
             model_type=args.model,
             api_key=args.api_key,
             max_steps=args.max_steps
         )
-        
-        print(f"\n测试{'成功' if success else '失败'}")
-        
+
+        print(f"\nTest {'succeeded' if success else 'failed'}")
+
     except KeyboardInterrupt:
-        print("\n用户中断，退出程序")
+        print("\nUser interrupted, exiting the program")
     except Exception as e:
-        print(f"\n执行出错: {str(e)}")
+        print(f"\nAn error occurred: {str(e)}")
         import traceback
         traceback.print_exc()
 
