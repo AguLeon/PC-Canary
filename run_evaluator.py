@@ -2,44 +2,46 @@
 # -*- coding: utf-8 -*-
 
 """
-通用评估器运行脚本
-可用于运行任何定义在tests/tasks目录下的应用评估任务
+Universal Evaluator Runner Script
+Used to run any evaluation task defined under tests/tasks directory.
 
-使用方法：
+Usage:
 python run_evaluator.py --app telegram --task task01_search --app-path /path/to/app [--custom-params '{"query":"news"}']
 """
 
+from evaluator.core.base_evaluator import BaseEvaluator, CallbackEventData
 import os
 import sys
 import time
 import json
 import argparse
 import signal
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 
-# 添加项目根目录到路径
+# Add project root to path
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(PROJECT_ROOT)
 
-from evaluator.core.base_evaluator import BaseEvaluator, CallbackEventData
 
 # Global flag to signal loop termination from callback
 evaluation_finished = False
 
-# 信号处理函数
+# Signal handler
+
+
 def signal_handler(sig, frame, evaluator=None):
     """
-    处理CTRL+C信号
+    Handle CTRL+C signal
 
     Args:
-        sig: 信号类型
-        frame: 栈帧
-        evaluator: 评估器实例
+        sig: Signal type
+        frame: Stack frame
+        evaluator: Evaluator instance
     """
-    print("\n\n用户中断评估...")
+    print("\n\nEvaluation interrupted by user...")
 
     if evaluator and evaluator.is_running:
-        print("正在停止评估器...")
+        print("Stopping evaluator...")
         evaluator.stop()
         evaluator.stop_app()
     sys.exit(0)
@@ -47,87 +49,85 @@ def signal_handler(sig, frame, evaluator=None):
 
 def handle_evaluator_event(event_data: CallbackEventData, evaluator: BaseEvaluator):
     """
-    处理评估器事件的回调函数
+    Callback function to handle evaluator events
 
     Args:
-        event_data: 事件数据
-        evaluator: 评估器实例
+        event_data: Event data
+        evaluator: Evaluator instance
     """
-    print(f"\n收到评估器事件: {event_data.event_type} - {event_data.message}")
+    print(f"\nReceived evaluator event: {
+          event_data.event_type} - {event_data.message}")
 
-    # Use the global flag to signal termination
     global evaluation_finished
 
-    if event_data.event_type == "task_completed": # Check string event type from CallbackEventData
-        print(f"任务成功完成")
-        evaluation_finished = True # Signal the main loop to stop
-        # evaluator.stop() # <- Removed: stop() is called after the loop
-        # print("任务完成，正在停止评估器...") # <- Message moved after loop
+    if event_data.event_type == "task_completed":
+        print("Task completed successfully")
+        evaluation_finished = True  # Signal the main loop to stop
 
     elif event_data.event_type == "task_error":
-        print(f"任务出错")
-        evaluation_finished = True # Signal the main loop to stop
+        print("Task encountered an error")
+        evaluation_finished = True
 
-    elif event_data.event_type == "evaluator_stopped": # This might still be triggered by BaseEvaluator.stop() if needed
-        print(f"评估器已停止")
-        # evaluation_finished = True # Decide if external stop should also terminate the loop immediately
+    elif event_data.event_type == "evaluator_stopped":
+        print("Evaluator stopped")
 
 
 def print_app_instructions(app: str, task: str, instruction: str):
     """
-    打印特定应用和任务的操作指南
+    Print user instructions for the given app and task
 
     Args:
-        app: 应用名称
-        task: 任务ID
-        instruction: 任务指令
+        app: Application name
+        task: Task ID
+        instruction: Task instruction
     """
     print("\n" + "=" * 60)
-    print(f"{app.capitalize()}评估器运行中...")
-    print(f"任务: {task}")
-    print(f"任务指令: {instruction}")
-    print("\n请按照以下步骤操作：")
-    print("1. 应用将会自动启动（如果提供了路径）")
-    print("2. 请根据上述任务指令操作应用")
-    print("3. 评估器会自动监测您的操作")
-    print("4. 任务完成后会自动通知")
-    print("5. 随时可按CTRL+C终止评估")
+    print(f"{app.capitalize()} evaluator is running...")
+    print(f"Task: {task}")
+    print(f"Task instruction: {instruction}")
+    print("\nPlease follow these steps:")
+    print("1. The app will automatically start (if a path is provided)")
+    print("2. Operate the app according to the above task instruction")
+    print("3. The evaluator will automatically monitor your actions")
+    print("4. You will be notified when the task completes")
+    print("5. You can press CTRL+C anytime to stop the evaluation")
     print("=" * 60 + "\n")
 
 
 def load_config(app: str, task: str) -> Optional[Dict]:
     """
-    加载指定应用和任务的配置文件
+    Load configuration file for the specified app and task
 
     Args:
-        app: 应用名称
-        task: 任务ID
+        app: Application name
+        task: Task ID
 
     Returns:
-        Dict: 配置文件内容，如果无法加载则返回None
+        Dict: Configuration file contents, or None if loading fails
     """
-    config_path = os.path.join(PROJECT_ROOT, "tests", "tasks", app, task, "config.json")
+    config_path = os.path.join(
+        PROJECT_ROOT, "tests", "tasks", app, task, "config.json")
     if not os.path.exists(config_path):
-        print(f"错误: 配置文件不存在: {config_path}")
+        print(f"Error: Configuration file not found: {config_path}")
         return None
 
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
-        print(f"错误: 无法加载配置文件: {str(e)}")
+        print(f"Error: Failed to load configuration file: {str(e)}")
         return None
 
 
 def parse_custom_params(params_str: str) -> Dict:
     """
-    解析自定义参数字符串为字典
+    Parse custom parameters JSON string into a dictionary
 
     Args:
-        params_str: JSON格式的参数字符串
+        params_str: JSON-format string of parameters
 
     Returns:
-        Dict: 解析后的参数字典
+        Dict: Parsed parameters dictionary
     """
     if not params_str:
         return {}
@@ -135,21 +135,21 @@ def parse_custom_params(params_str: str) -> Dict:
     try:
         return json.loads(params_str)
     except json.JSONDecodeError as e:
-        print(f"警告: 自定义参数解析失败: {str(e)}")
-        print("将使用空参数字典")
+        print(f"Warning: Failed to parse custom parameters: {str(e)}")
+        print("Using empty parameter dictionary")
         return {}
 
 
 def list_available_tasks():
     """
-    列出所有可用的应用和任务
+    List all available apps and tasks
     """
     tasks_dir = os.path.join(PROJECT_ROOT, "tests", "tasks")
     if not os.path.exists(tasks_dir):
-        print("错误: 任务目录不存在")
+        print("Error: Tasks directory does not exist")
         return
 
-    print("\n可用的应用和任务:")
+    print("\nAvailable apps and tasks:")
     print("=" * 60)
 
     for app in os.listdir(tasks_dir):
@@ -157,7 +157,7 @@ def list_available_tasks():
         if not os.path.isdir(app_dir):
             continue
 
-        print(f"应用: {app}")
+        print(f"App: {app}")
         for task in os.listdir(app_dir):
             task_dir = os.path.join(app_dir, task)
             if not os.path.isdir(task_dir):
@@ -173,163 +173,173 @@ def list_available_tasks():
                 except:
                     pass
 
-            print(f"  - 任务: {task} {task_desc}")
+            print(f"  - Task: {task} {task_desc}")
 
         print("-" * 60)
 
 
 def main():
-    """主函数"""
-    parser = argparse.ArgumentParser(description="通用评估器运行脚本")
-    parser.add_argument("--app", type=str, help="要评估的应用名称")
-    parser.add_argument("--task", type=str, help="要运行的任务ID")
-    parser.add_argument("--app-path", type=str, help="应用可执行文件路径")
+    """Main function"""
+    parser = argparse.ArgumentParser(
+        description="Universal Evaluator Runner Script")
+    parser.add_argument("--app", type=str,
+                        help="Name of the application to evaluate")
+    parser.add_argument("--task", type=str, help="ID of the task to run")
+    parser.add_argument("--app-path", type=str,
+                        help="Path to the application executable")
     parser.add_argument(
-        "--log-dir", type=str, default="logs", help="日志目录 (默认: logs)"
+        "--log-dir", type=str, default="logs", help="Log directory (default: logs)"
     )
     parser.add_argument(
-        "--timeout", type=int, default=300, help="超时时间，秒 (默认: 300)"
+        "--timeout", type=int, default=300, help="Timeout in seconds (default: 300)"
     )
-    parser.add_argument("--custom-params", type=str, help="自定义参数，JSON格式字符串")
-    parser.add_argument("--list", action="store_true", help="列出所有可用的应用和任务")
+    parser.add_argument("--custom-params", type=str,
+                        help="Custom parameters in JSON format")
+    parser.add_argument("--list", action="store_true",
+                        help="List all available apps and tasks")
 
     args = parser.parse_args()
 
-    # 如果使用--list参数，则列出可用任务后退出
+    # If --list flag is used, list available tasks and exit
     if args.list:
         list_available_tasks()
         return 0
 
-    # 检查必要参数
+    # Check required parameters
     if not args.app or not args.task:
-        print("错误: 必须指定应用名称(--app)和任务ID(--task)")
+        print("Error: You must specify both --app and --task")
         parser.print_help()
         return 1
 
-    # 检查任务目录是否存在
-    task_path = os.path.join(PROJECT_ROOT, "tests", "tasks", args.app, args.task)
+    # Check if task directory exists
+    task_path = os.path.join(PROJECT_ROOT, "tests",
+                             "tasks", args.app, args.task)
     if not os.path.exists(task_path):
-        print(f"错误: 任务目录不存在: {task_path}")
+        print(f"Error: Task directory not found: {task_path}")
         return 1
 
-    # 加载任务配置
+    # Load task configuration
     config = load_config(args.app, args.task)
     if not config:
         return 1
-
-    # 应用路径处理
+    # Handle application path
     app_path = args.app_path
     if not app_path and "application_info" in config:
         app_path = config["application_info"].get("executable_path")
 
     if app_path and not os.path.exists(app_path):
-        print(f"警告: 应用可执行文件不存在: {app_path}")
-        user_choice = input("是否继续评估？(y/n): ").strip().lower()
+        print(f"Warning: Application executable not found: {app_path}")
+        user_choice = input(
+            "Continue evaluation anyway? (y/n): ").strip().lower()
         if user_choice != "y":
             return 0
-        app_path = None  # 如果文件不存在但用户选择继续，则将路径置为None
+        app_path = None  # If file doesn’t exist but user chooses to continue, set to None
 
-    # 解析自定义参数
+    # Parse custom parameters
     custom_params = parse_custom_params(args.custom_params)
 
-    # 创建日志目录
+    # Create log directory
     log_dir = args.log_dir
     os.makedirs(log_dir, exist_ok=True)
 
-    # 任务信息
+    # Task information
     task = {
         "category": args.app,
         "id": args.task,
     }
 
-    print(f"初始化评估器...")
-    print(f"应用: {args.app}")
-    print(f"任务: {args.task}")
+    print("Initializing evaluator...")
+    print(f"Application: {args.app}")
+    print(f"Task: {args.task}")
     if app_path:
-        print(f"应用路径: {app_path}")
+        print(f"Application path: {app_path}")
     if custom_params:
-        print(f"自定义参数: {json.dumps(custom_params, ensure_ascii=False)}")
+        print(f"Custom parameters: {json.dumps(
+            custom_params, ensure_ascii=False)}")
 
     evaluator = None
 
     try:
-        # 设置信号处理器
+        # Set signal handler
         def handler(sig, frame):
             return signal_handler(sig, frame, evaluator)
 
         signal.signal(signal.SIGINT, handler)
 
-        # 创建评估器
-        evaluator = BaseEvaluator(task, log_dir, app_path, custom_params=custom_params)
+        # Create evaluator
+        evaluator = BaseEvaluator(
+            task, log_dir, app_path, custom_params=custom_params)
 
-        # 注册回调函数
+        # Register callback function
         evaluator.register_completion_callback(handle_evaluator_event)
 
-        # 启动评估器
+        # Start evaluator
         success = evaluator.start()
         if not success:
-            print("评估器启动失败")
+            print("Failed to start evaluator")
             return 1
 
-        # 打印操作指南
+        # Print operation guide
         print_app_instructions(args.app, args.task, evaluator.instruction)
 
-        # 设置超时
+        # Set timeout
         timeout_seconds = args.timeout
         start_time = time.time()
 
-        # 主循环，等待任务完成或超时，由回调函数设置 evaluation_finished
+        # Main loop — waits for task completion or timeout (callback sets evaluation_finished)
         while not evaluation_finished:
-            # 检查超时
+            # Check for timeout
             if time.time() - start_time > timeout_seconds:
-                print(f"\n评估超时 ({timeout_seconds}秒)...")
+                print(f"\nEvaluation timed out ({timeout_seconds} seconds)...")
                 evaluator.stop()
                 time.sleep(10)
                 break
 
-        # 如果评估器仍在运行，则停止它
+        # Stop evaluator if still running
         if evaluator.is_running:
-            print("正在停止评估器...")
+            print("Stopping evaluator...")
             evaluator.stop()
-            time.sleep(1)  # 给评估器一些时间来结束
+            time.sleep(1)  # Allow time for shutdown
 
-        # 获取并打印最终计算出的指标（可选，因为结果已保存到文件）
-        final_results = evaluator.result_collector.get_results(evaluator.task_id)
+        # Retrieve and print final computed metrics (optional, since results are saved to file)
+        final_results = evaluator.result_collector.get_results(
+            evaluator.task_id)
         computed_metrics = final_results.get('computed_metrics', {})
         final_status = computed_metrics.get('task_completion_status', {})
 
-        print("\n评估任务结束！")
-        print("最终计算指标:")
+        print("\nEvaluation task finished!")
+        print("Final computed metrics:")
         if computed_metrics:
             for key, value in computed_metrics.items():
-                value_str = json.dumps(value, ensure_ascii=False, indent=2) if isinstance(value, (dict, list)) else value
+                value_str = json.dumps(value, ensure_ascii=False, indent=2) if isinstance(
+                    value, (dict, list)) else value
                 print(f"  {key}: {value_str}")
         else:
-            print("  未能计算任何指标。")
+            print("  No metrics could be computed.")
 
-        print(f"\n最终任务状态: {final_status.get('status', '未知')}")
+        print(f"\nFinal task status: {final_status.get('status', 'Unknown')}")
         if final_status.get('reason'):
-            print(f"原因: {final_status.get('reason')}")
+            print(f"Reason: {final_status.get('reason')}")
 
-        # 查找并显示结果文件位置
+        # Locate and display result file
         result_file = evaluator.save_results()
         if result_file:
-            print(f"\n结果文件保存在: {result_file}")
+            print(f"\nResult file saved at: {result_file}")
 
-        # 停止应用
+        # Stop the application
         evaluator.stop_app()
 
     except Exception as e:
         import traceback
 
-        print(f"评估过程中发生错误: {e}")
+        print(f"Error occurred during evaluation: {e}")
         print(traceback.format_exc())
         if evaluator and evaluator.is_running:
             evaluator.stop()
             evaluator.stop_app()
         return 1
 
-    print("评估脚本正常退出")
+    print("Evaluation script exited normally")
     return 0
 
 
