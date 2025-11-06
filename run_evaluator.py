@@ -55,8 +55,7 @@ def handle_evaluator_event(event_data: CallbackEventData, evaluator: BaseEvaluat
         event_data: Event data
         evaluator: Evaluator instance
     """
-    print(f"\nReceived evaluator event: {
-          event_data.event_type} - {event_data.message}")
+    print(f"\nReceived evaluator event: {event_data.event_type} - {event_data.message}")
 
     global evaluation_finished
 
