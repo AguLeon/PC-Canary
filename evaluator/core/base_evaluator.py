@@ -157,6 +157,10 @@ class BaseEvaluator:
         launch_args = self.config.get("application_info", {}).get("args", [])
         app_working_cwd = self.config.get("application_info", {}).get("cwd", None)
 
+        # If app_path not provided as parameter, read from config
+        if app_path is None:
+            app_path = self.config.get("application_info", {}).get("executable_path")
+
         # Initialize components with the shared logger
         if evaluator_type == "IpcInjector":
             self.hook_manager = IpcInjector(
@@ -483,6 +487,38 @@ class BaseEvaluator:
                     from_path = os.path.join(self.canary_root, from_relative_path)
                     to_path = config.get("to")
                     restore_context_data(from_path, to_path)
+
+                    # Clear Session Storage and Local Storage to prevent Socket.IO session conflicts
+                    # Only do this for vscode user data directories
+                    if "vscode" in to_path and "user_data_dir" in to_path:
+                        import shutil
+                        # Clear Session Storage
+                        session_storage_path = os.path.join(to_path, "Session Storage")
+                        if os.path.exists(session_storage_path):
+                            shutil.rmtree(session_storage_path)
+                            self.logger.info(f"Cleared Session Storage at {session_storage_path}")
+
+                        # Clear Local Storage (where socket.io stores session cookies)
+                        local_storage_path = os.path.join(to_path, "Local Storage")
+                        if os.path.exists(local_storage_path):
+                            shutil.rmtree(local_storage_path)
+                            self.logger.info(f"Cleared Local Storage at {local_storage_path}")
+
+                        # Clear cookies
+                        cookies_path = os.path.join(to_path, "Cookies")
+                        if os.path.exists(cookies_path):
+                            try:
+                                os.remove(cookies_path)
+                                self.logger.info(f"Cleared Cookies at {cookies_path}")
+                            except:
+                                pass
+                        cookies_journal_path = os.path.join(to_path, "Cookies-journal")
+                        if os.path.exists(cookies_journal_path):
+                            try:
+                                os.remove(cookies_journal_path)
+                                self.logger.info(f"Cleared Cookies-journal at {cookies_journal_path}")
+                            except:
+                                pass
             except Exception as e:
                 self.logger.error(f"Failed to restore user data: {str(e)}")
                 return False
@@ -513,7 +549,13 @@ class BaseEvaluator:
             )
 
             # 3. Load hook scripts, which may start sending events immediately
-            self.hook_manager.load_scripts(self._on_message)
+            load_success = self.hook_manager.load_scripts(self._on_message)
+            if not load_success:
+                self.logger.warning(
+                    "Hook manager reported failure while loading scripts; continuing without injected hooks."
+                )
+            else:
+                self.logger.debug("Hook manager loaded scripts successfully.")
 
             self.logger.info("Evaluator started successfully")
             return True

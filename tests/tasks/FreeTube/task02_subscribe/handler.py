@@ -40,13 +40,18 @@ def set_evaluator(evaluator):
             # 提供一个默认配置以避免空引用
             _CONFIG = {"task_parameters": {"query": "Porsche"}}
 
-def message_handler(message: Dict[str, Any], data: Any) -> Optional[str]:
+def message_handler(
+    message: Dict[str, Any],
+    logger: Optional[Any] = None,
+    task_parameters: Optional[Dict[str, Any]] = None,
+) -> Optional[str]:
     """
     处理从钩子脚本接收的消息
     
     Args:
         message: injector消息对象
-        data: 附加数据
+        logger: 评估器日志记录器
+        task_parameters: 任务配置参数
         
     Returns:
         str: 如果任务成功完成返回"success"，否则返回None
@@ -59,29 +64,45 @@ def message_handler(message: Dict[str, Any], data: Any) -> Optional[str]:
     
     # 检查评估器是否已设置
     if _EVALUATOR is None:
-        print("警告: 评估器未设置，无法处理消息")
-        return None
+       print("警告: 评估器未设置，无法处理消息")
+       return None
     
+    active_logger = logger or getattr(_EVALUATOR, "logger", None)
+    effective_config = _CONFIG or {}
+    if task_parameters:
+        effective_config = {
+            **effective_config,
+            "task_parameters": {
+                **effective_config.get("task_parameters", {}),
+                **task_parameters,
+            },
+        }
+
     event_type = message.get('event_type')
     if event_type == 'subscribing':
         channel_name = message.get("channelName")
-        _EVALUATOR.logger.info(message.get('message') + ": " + channel_name)
-        expected_query = _CONFIG.get("task_parameters", {}).get("query", "Porsche")
+        if active_logger:
+            active_logger.info(message.get('message') + ": " + channel_name)
+        expected_query = effective_config.get("task_parameters", {}).get("query", "Porsche")
         if channel_name == expected_query:
             _EVALUATOR.update_metric("success", True)
             # update time
             completion_time = time.time() - _START_TIME
             _EVALUATOR.update_metric("time_to_complete", completion_time)
-            _EVALUATOR.logger.info(f"任务成功完成! 耗时: {completion_time:.2f} 秒")
+            if active_logger:
+                active_logger.info(f"任务成功完成! 耗时: {completion_time:.2f} 秒")
             return "success"
     elif event_type == "unsubscribing":
         channel_name = message.get("channelName")
-        _EVALUATOR.logger.info(message.get('message') + ": " + channel_name)
+        if active_logger:
+            active_logger.info(message.get('message') + ": " + channel_name)
     elif event_type == "hook_success":
-        _EVALUATOR.logger.info(message.get('message'))
+        if active_logger:
+            active_logger.info(message.get('message'))
         _EVALUATOR.update_metric("hook_success", True)
     elif event_type == 'error':
-        _EVALUATOR.logger.error(f"钩子脚本错误: {message.get('message')}")
+        if active_logger:
+            active_logger.error(f"钩子脚本错误: {message.get('message')}")
     return None
 
 def register_handlers(evaluator):
