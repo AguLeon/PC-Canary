@@ -105,6 +105,30 @@ You can directly run `test_evaluator.py` and `run_evaluator.py`, then manually o
 python test_evaluator.py
 ```
 
+#### VSCode User Data Cleanup
+
+When evaluating VSCode tasks, stale Socket.IO session data in the user_data_dir can cause connection issues. The evaluator provides an opt-in cleanup mechanism to remove these files during context restoration.
+
+To enable this feature, add the following configuration flag to your task's `config.json`:
+
+```json
+{
+  "clear_vscode_storage_on_restore": true
+}
+```
+
+**Important Notes:**
+- This feature is **disabled by default** to prevent unintended data loss
+- Only activates when:
+  - The flag is explicitly set to `true` in the task configuration
+  - The restore path contains both "vscode" and "user_data_dir"
+- Clears the following VSCode storage items:
+  - `Session Storage/` directory
+  - `Local Storage/` directory
+  - `Cookies` file
+  - `Cookies-journal` file
+- This is a **destructive operation** - use only when stale session data needs to be cleared
+
 ### Integration with Agent System
 
 Currently, this project includes a basic prompt-based GUI Agent. You can test integrating the evaluator with the Agent system by running:
