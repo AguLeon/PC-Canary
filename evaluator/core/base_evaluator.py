@@ -488,6 +488,16 @@ class BaseEvaluator:
                     from_path = os.path.join(self.canary_root, from_relative_path)
                     to_path = config.get("to")
                     restore_context_data(from_path, to_path)
+                    
+                    # Optionally clear VSCode user storage after restore
+                    # Only execute if explicitly enabled and path looks like VSCode user_data_dir
+                    if (
+                        self.config.get('clear_vscode_storage_on_restore', False)
+                        and 'vscode' in to_path.lower()
+                        and 'user_data_dir' in to_path.lower()
+                    ):
+                        from evaluator.utils.vscode_userdata import clear_vscode_user_storage
+                        clear_vscode_user_storage(to_path, logger=self.logger)
 
             except Exception as e:
                 self.logger.error(f"Failed to restore user data: {str(e)}")
