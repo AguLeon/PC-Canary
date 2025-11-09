@@ -34,10 +34,10 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
             if expected_content == now_content:
                 return [
                     {"status": "key_step", "index": 2},
-                    {"status": "success", "reason": f"文件成功修改"}
+                    {"status": "success", "reason": "File content updated successfully"}
                 ]
             else:
-                return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+                return [{"status": "error", "type": "evaluate_on_completion", "message": "File content does not match expectation"}]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "Original file snapshot unavailable"}]
     return None

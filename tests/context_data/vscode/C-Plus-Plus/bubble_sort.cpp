@@ -15,7 +15,7 @@ void bubbleSort(std::vector<int>& arr) {
                 swap_check = true; // Indicate a swap occurred
             }
         }
-        // If no two elements were swap_check by inner loop, then array is sorted
+        // If no two elements were swapped by inner loop, then array is sorted
         if (!swap_check) {
             break;
         }

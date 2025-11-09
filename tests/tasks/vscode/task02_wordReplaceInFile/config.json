@@ -1,12 +1,12 @@
 {
     "task_id": "02",
     "task_name": "word_replace_in_file",
-    "description": "在vscode工作区文件中打开文件并且进行内容替换",
+    "description": "Open a file in the VS Code workspace and replace specific content",
 
     "application_info": {
         "name": "vscode",
-        "executable_path": "/usr/share/code/code",
-        "args": ["--no-sandbox", "--user-data-dir=/root/vscode_user_data_dir/"]
+        "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
+        "args": ["--no-sandbox", "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir", "/workspace/.mcpworld/vscode/C-Plus-Plus"]
     },
 
     "task_parameters": {
@@ -14,10 +14,10 @@
         "origin_name": "swap_check",
         "expected_name": "swap_flag",
 
-        "expected_path": "/root/C-Plus-Plus/sorting/bubble_sort.cpp"
+        "expected_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort.cpp"
     },
 
-    "instruction_template": "在vscode当前的工作区中找到并打开名为 ${file_name} 的文件, 将文件中名为 ${origin_name} 的内容替换为 ${expected_name}, 请注意文件的保存",
+    "instruction_template": "Open the file named ${file_name} in the current VS Code workspace, replace every occurrence of ${origin_name} with ${expected_name}, and make sure the file is saved",
 
     "evaluation_setup": {
         "scripts": [
@@ -34,19 +34,19 @@
     },
     "events": {
         "open_file": {
-            "description": "打开文件",
+            "description": "File opened",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "在vscode中打开文件"
+            "key_step_name": "File opened in VS Code"
         },
         "evaluate_on_completion": {
-            "description": "任务结束时读取文件内容",
+            "description": "Read file contents when the task ends",
             "is_key_step": true,
             "key_step_index": 2,
-            "key_step_name": "任务结束判断文件内容是否正确"
+            "key_step_name": "Verify file contents at task completion"
         },
         "read_origin_content": {
-            "description": "在任务开始时读取文件内容",
+            "description": "Read original file contents when the task starts",
             "is_key_step": false
         }
     },
@@ -59,15 +59,15 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",
-            "to": "/root/.vscode/"
+            "to": "/workspace/.mcpworld/vscode/.vscode/"
         },
         {
             "from": "tests/context_data/vscode/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "to": "/workspace/.mcpworld/vscode/C-Plus-Plus"
         }
     ]
 }

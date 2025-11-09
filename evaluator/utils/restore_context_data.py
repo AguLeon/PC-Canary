@@ -22,7 +22,7 @@ def restore_context_data(from_path: str, to_path: str) -> bool:
 
     # Copy contents from source to destination using rsync
     try:
-        rsync_cmd = ["rsync", "-av", "--delete", f"{from_path}/", to_path]
+        rsync_cmd = ["rsync", "-av", "--delete", "--chmod=F644", f"{from_path}/", to_path]
         result = subprocess.run(
             rsync_cmd,
             check=True,  # Raise an exception if the command fails

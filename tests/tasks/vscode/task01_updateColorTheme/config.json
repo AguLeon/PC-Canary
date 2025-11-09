@@ -1,7 +1,7 @@
 {
     "task_id": "01",
     "task_name": "update_color_theme",
-    "description": "在vscode中修改颜色主题",
+    "description": "Change the VS Code color theme",
 
     "application_info": {
         "name": "vscode",
@@ -13,7 +13,7 @@
         "theme": "Default Light+"
     },
 
-    "instruction_template": "在vscode中修改颜色主题为 ${theme}",
+    "instruction_template": "Change the VS Code color theme to ${theme}",
 
     "evaluation_setup": {
         "scripts": [
@@ -30,10 +30,10 @@
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时判断主题颜色是否符合预期",
+            "description": "Verify that the color theme matches the expected value when the task ends",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "主题颜色已经设置成功"
+            "key_step_name": "Color theme successfully updated"
         }
     },
     "mcp_servers": [
