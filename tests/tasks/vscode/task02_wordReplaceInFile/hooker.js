@@ -3,6 +3,8 @@
  * @param {string} path - The file path to read.
  * @returns {string|undefined} The file content or undefined if an error occurs.
  */
+const fs = require("fs");
+
 async function readFile(path) {
     try {
         // Check if the file exists
@@ -18,7 +20,7 @@ async function readFile(path) {
     }
 }
 
-readFile("/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp").then(origin_file_content => {
+readFile("/workspace/PC-Canary/tests/context_data/vscode/C-Plus-Plus/bubble_sort.cpp").then(origin_file_content => {
     socket.emit("send", {
         event_type: "read_origin_content",
         message: "初始文件内容",

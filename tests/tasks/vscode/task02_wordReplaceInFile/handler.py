@@ -10,7 +10,7 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     global origin_file_content, file_path
     event_type = message.get('event_type')
     logger.info(message)
-    expected_path = task_parameter.get("expected_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp")
+    expected_path = task_parameter.get("expected_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort.cpp")
     if event_type == "open_file":
         file_path = message.get("path")
         if message.get("scheme") == "git":
@@ -20,6 +20,9 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
                 {"status": "key_step", "index": 1}
             ]
     elif event_type == "read_origin_content":
+        print("*" * 100)
+        print(message)
+        print("*" * 100)
         origin_file_content = message.get("content")
     elif event_type == "evaluate_on_completion":
         if origin_file_content:
