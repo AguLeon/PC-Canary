@@ -488,38 +488,17 @@ class BaseEvaluator:
                     from_path = os.path.join(self.canary_root, from_relative_path)
                     to_path = config.get("to")
                     restore_context_data(from_path, to_path)
+                    
+                    # Optionally clear VSCode user storage after restore
+                    # Only execute if explicitly enabled and path looks like VSCode user_data_dir
+                    if (
+                        self.config.get('clear_vscode_storage_on_restore', False)
+                        and 'vscode' in to_path.lower()
+                        and 'user_data_dir' in to_path.lower()
+                    ):
+                        from evaluator.utils.vscode_userdata import clear_vscode_user_storage
+                        clear_vscode_user_storage(to_path, logger=self.logger)
 
-                    # Clear Session Storage and Local Storage to prevent Socket.IO session conflicts
-                    # Only do this for vscode user data directories
-                    if "vscode" in to_path and "user_data_dir" in to_path:
-                        import shutil
-                        # Clear Session Storage
-                        session_storage_path = os.path.join(to_path, "Session Storage")
-                        if os.path.exists(session_storage_path):
-                            shutil.rmtree(session_storage_path)
-                            self.logger.info(f"Cleared Session Storage at {session_storage_path}")
-
-                        # Clear Local Storage (where socket.io stores session cookies)
-                        local_storage_path = os.path.join(to_path, "Local Storage")
-                        if os.path.exists(local_storage_path):
-                            shutil.rmtree(local_storage_path)
-                            self.logger.info(f"Cleared Local Storage at {local_storage_path}")
-
-                        # Clear cookies
-                        cookies_path = os.path.join(to_path, "Cookies")
-                        if os.path.exists(cookies_path):
-                            try:
-                                os.remove(cookies_path)
-                                self.logger.info(f"Cleared Cookies at {cookies_path}")
-                            except:
-                                pass
-                        cookies_journal_path = os.path.join(to_path, "Cookies-journal")
-                        if os.path.exists(cookies_journal_path):
-                            try:
-                                os.remove(cookies_journal_path)
-                                self.logger.info(f"Cleared Cookies-journal at {cookies_journal_path}")
-                            except:
-                                pass
             except Exception as e:
                 self.logger.error(f"Failed to restore user data: {str(e)}")
                 return False
