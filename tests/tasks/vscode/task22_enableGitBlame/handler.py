@@ -9,7 +9,7 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     if event_type == 'evaluate_on_completion' and message.get('blameon', None):
         return [
             {"status": "key_step", "index": 1},
-            {"status": "success", "reason": f"任务成功完成"}
+            {"status": "success", "reason": "Git blame editor decoration enabled"}
         ]
     else:
-        return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+        return [{"status": "error", "type": "evaluate_on_completion", "message": "Git blame decoration setting is still disabled"}]

@@ -1,21 +1,24 @@
 {
     "task_id": "18",
-    "task_name": "create_new_file",
-    "description": "在vscode中安装插件, 并且进行设置",
+    "task_name": "configure_plugin",
+    "description": "Install a VS Code extension and adjust its configuration",
 
     "application_info": {
         "name": "vscode",
-        "executable_path": "/usr/share/code/code",
-        "args": ["--no-sandbox", "--user-data-dir=/root/vscode_user_data_dir/"]
+        "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
+        "args": [
+            "--no-sandbox",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir"
+        ]
     },
 
     "task_parameters": {
         "plugin_name": "TODO Highlight",
-        "instruction": "配置插件为大小写不敏感",
+        "instruction": "Configure the extension so that highlighting is case-insensitive",
         "value": false
     },
 
-    "instruction_template": "在vscode中安装名为 ${plugin_name} 插件, 并且 ${instruction}",
+    "instruction_template": "Install the ${plugin_name} extension in VS Code and ${instruction}",
 
     "evaluation_setup": {
         "scripts": [
@@ -32,16 +35,16 @@
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时检查任务是否完成",
+            "description": "Check that the extension is installed and configured correctly",
             "is_key_step": true,
             "key_step_index": 2,
-            "key_step_name": "任务成功完成"
+            "key_step_name": "Extension configured"
         },
         "plugin_installed": {
-            "description": "在任务结束时检查插件是否安装",
+            "description": "Confirm the extension appears in the installed list",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "插件成功安装"
+            "key_step_name": "Extension installed"
         }
     },
     "mcp_servers": [
@@ -53,15 +56,15 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
-            "from": "tests/context_data/vscode/task18/extensions",
-            "to": "/root/.vscode/"
+            "from": "tests/context_data/vscode/extensions",
+            "to": "/workspace/.mcpworld/vscode/.vscode/"
         },
         {
             "from": "tests/context_data/vscode/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "to": "/workspace/.mcpworld/vscode/C-Plus-Plus"
         }
     ]
 }

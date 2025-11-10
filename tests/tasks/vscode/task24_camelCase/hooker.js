@@ -31,7 +31,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时检查打开的文件是否含有报错",
+        'message': "Captured diagnostics for the active file at task completion",
         'hasErrors': hasErrors
     });
 });

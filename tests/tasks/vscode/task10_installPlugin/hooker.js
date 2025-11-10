@@ -19,7 +19,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "在任务结束时检查插件是否已经安装",
+        'message': "Check whether the extension is installed at task completion",
         'extensions': extensionNames
     });
 });

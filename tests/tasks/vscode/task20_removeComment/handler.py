@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-vscode修改主题颜色的事件处理器
-负责处理钩子脚本产生的事件并更新评估指标
+Event handler for removing comments from a VS Code workspace file.
+Processes hook events and verifies the resulting file state.
 """
 
 import os, re
@@ -96,7 +96,7 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     LOGGER = logger
     # _EVALUATOR.logger.info(message)
     logger.info(message)
-    expected_file_path = task_parameter.get("expected_file_path")
+    expected_file_path = task_parameter.get("expected_file_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/operations_on_datastructures/get_size_of_linked_list.cpp")
     if event_type == 'get_origin_file':
         root = message.get('root', None)
         if root == None:
@@ -118,10 +118,10 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
         if file_content == _EXPECTED_FILE and message.get('filename', None) == file_path:
             return [
                 {"status": "key_step", "index": 2},
-                {"status": "success", "reason": f"任务成功完成"}
+                {"status": "success", "reason": "Comments removed and file matches the sanitized snapshot"}
             ]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "File contents still contain comments or do not match"}]
     elif event_type == "open_file":
         file_path = message.get("path")
         if message.get("scheme") == "git":

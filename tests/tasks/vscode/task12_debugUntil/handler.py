@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional, List
 def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:    
     event_type = message.get('event_type')
     logger.info(message)
-    expected_hit_file = task_parameter.get("expected_hit_file", '/root/C-Plus-Plus/agent_test/debug_until.cpp')
+    expected_hit_file = task_parameter.get("expected_hit_file", "/workspace/.mcpworld/vscode/C-Plus-Plus/agent_test/debug_until.cpp")
     expected_hit_line = task_parameter.get("expected_hit_line", 22)
     expected_locals = task_parameter.get("expected_locals", {
         "next": "5",
@@ -22,7 +22,7 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
         "19": "j==2",
         "22": ""
     })
-    expected_program = task_parameter.get("expected_program", "/root/C-Plus-Plus/agent_test/debug_until")
+    expected_program = task_parameter.get("expected_program", "/workspace/.mcpworld/vscode/C-Plus-Plus/agent_test/debug_until")
     if event_type == "evaluate_on_completion":
         breakpoints = message.get('breakpoints')
         debuginfo = message.get('debuginfo')
@@ -44,10 +44,10 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
         if len(expected_locals) == 0 and len(expected_breakpoints) == 0:
             return [
                 {"status": "key_step", "index": 6},
-                {"status": "success", "reason": f"任务成功完成"}
+                {"status": "success", "reason": "Breakpoints, hit location, and locals match expectations"}
             ]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "Debug session state does not match expectations"}]
     elif event_type == "open_file":
         file_path = message.get("path")
         if message.get("scheme") == "git":

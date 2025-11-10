@@ -20,10 +20,10 @@ async function readFile(path) {
     }
 }
 
-readFile("/workspace/PC-Canary/tests/context_data/vscode/C-Plus-Plus/bubble_sort.cpp").then(origin_file_content => {
+readFile("/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort.cpp").then(origin_file_content => {
     socket.emit("send", {
         event_type: "read_origin_content",
-        message: "初始文件内容",
+        message: "Captured original file contents at task start",
         content: origin_file_content
     });
 });
@@ -32,7 +32,7 @@ readFile("/workspace/PC-Canary/tests/context_data/vscode/C-Plus-Plus/bubble_sort
 socket.on('evaluate', async () => {
     socket.emit("send", {
         event_type: "evaluate_on_completion",
-        message: "任务结束时读取文件内容"
+        message: "Captured file contents when the task completed"
     });
 });
 
@@ -41,7 +41,7 @@ vscode.workspace.onDidOpenTextDocument(async (document) => {
     const filePath = document.uri.fsPath;
     socket.emit("send", {
         event_type: "open_file",
-        message: "打开文件",
+        message: "File opened",
         path: filePath,
         scheme: document.uri.scheme
     });

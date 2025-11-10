@@ -16,7 +16,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时检查文件是否存在",
+        'message': "Workspace root captured for file existence check",
         'root': root
     });
 });

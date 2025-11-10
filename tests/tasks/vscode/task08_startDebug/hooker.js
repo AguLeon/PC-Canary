@@ -79,7 +79,7 @@ async function inspectCppDebugSession() {
     } catch (error) {
         socket.emit("send", {
             'event_type': "error",
-            'message': "在获取debug会话时出现错误"
+            'message': "Failed to inspect the debug session"
         });
         console.error('Inspection error:', error);
         throw error;
@@ -92,7 +92,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时获取到debug会话的状态",
+        'message': "Captured debug session status at the end of the task",
         'breakpoints': debugInfo.breakpoints,
         'current_file': debugInfo.currentFile,
         'current_line': debugInfo.currentLine
@@ -104,7 +104,7 @@ vscode.workspace.onDidOpenTextDocument(async (document) => {
     const filePath = document.uri.fsPath;
     socket.emit("send", {
         event_type: "open_file",
-        message: "打开文件",
+        message: "File opened",
         path: filePath,
         scheme: document.uri.scheme
     });
@@ -119,7 +119,7 @@ vscode.debug.onDidChangeBreakpoints((event) => {
                 const location = breakpoint.location;
                 socket.emit('send', {
                     'event_type': 'breakpoint_change',
-                    'message': '断点添加',
+                    'message': 'Breakpoint added',
                     'action': 'added',
                     'path': location.uri.fsPath,
                     'line': location.range.start.line + 1, // Convert to 1-based line number
@@ -135,7 +135,7 @@ vscode.debug.onDidChangeBreakpoints((event) => {
                 const location = breakpoint.location;
                 socket.emit('send', {
                     'event_type': 'breakpoint_change',
-                    'message': '断点移除',
+                    'message': 'Breakpoint removed',
                     'action': 'removed',
                     'path': location.uri.fsPath,
                     'line': location.range.start.line + 1,
@@ -151,7 +151,7 @@ vscode.debug.onDidChangeBreakpoints((event) => {
                 const location = breakpoint.location;
                 socket.emit('send', {
                     'event_type': 'breakpoint_change',
-                    'message': '断点修改',
+                    'message': 'Breakpoint updated',
                     'action': 'changed',
                     'path': location.uri.fsPath,
                     'line': location.range.start.line + 1,
@@ -176,7 +176,7 @@ vscode.debug.onDidStartDebugSession((session) => {
         // Emit debug session start event via socket
         socket.emit('send', {
             'event_type': 'debug_session_start',
-            'message': '调试会话开始',
+            'message': 'Debug session started',
             'session_name': session.name,
             'debugger_type': session.type,
             'program': program,

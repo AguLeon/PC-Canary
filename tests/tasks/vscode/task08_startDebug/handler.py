@@ -6,15 +6,15 @@ from typing import Dict, Any, Optional, Callable, List
 def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:    
     event_type = message.get('event_type')
     logger.info(message)
-    expected_filename = task_parameter.get("file_name", "/root/C-Plus-Plus/sorting/bubble_sort.cpp")
+    expected_filename = task_parameter.get("file_name", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp")
     expected_breakpoints = task_parameter.get("breakpoints", {
         "78": "i==2",
         "80": "None",
         "98": "None"
     })
-    expected_hit_file = task_parameter.get("hit_file", "/root/C-Plus-Plus/sorting/bubble_sort.cpp")
+    expected_hit_file = task_parameter.get("hit_file", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp")
     expected_hit_line = task_parameter.get("hit_line", 98)
-    expected_program = task_parameter.get("expected_program", "/root/C-Plus-Plus/sorting/bubble_sort")
+    expected_program = task_parameter.get("expected_program", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort")
     if event_type == "evaluate_on_completion":
         breakpoints_info = message.get('breakpoints')
         current_file = message.get('current_file')
@@ -31,10 +31,10 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
         if len(expected_breakpoints) == 0 and expected_hit_file == current_file and expected_hit_line == current_line:
             return [
                 {"status": "key_step", "index": 6},
-                {"status": "success", "reason": f"任务成功完成"}
+                {"status": "success", "reason": "Breakpoints configured and debug session hit the expected location"}
             ]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "Breakpoints or current location do not match expectations"}]
     elif event_type == "open_file":
         file_path = message.get("path")
         if message.get("scheme") == "git":

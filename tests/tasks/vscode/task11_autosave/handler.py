@@ -8,13 +8,13 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     logger.info(f"{message}")
     if event_type == "evaluate_on_completion":
         config = message.get('config')
-        expected_save_mode = task_parameter.get("autoSave", 'afterDelay')
-        expected_save_delay = task_parameter.get("autoSaveDelay", 500)
+        expected_save_mode = task_parameter.get("autoSave", task_parameter.get("mode", 'afterDelay'))
+        expected_save_delay = task_parameter.get("autoSaveDelay", task_parameter.get("delay", 500))
         if config.get("autoSave") == expected_save_mode and expected_save_delay == config.get("autoSaveDelay"):
             return [
                 {"status": "key_step", "index": 1},
-                {"status": "success", "reason": f"任务成功完成"}
+                {"status": "success", "reason": "Auto save mode and delay updated for the workspace"}
             ]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "Auto save configuration does not match expectations"}]
     return None

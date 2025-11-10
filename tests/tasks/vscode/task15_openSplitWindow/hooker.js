@@ -42,7 +42,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时获得打开文件的信息",
+        'message': "Captured open files and split layout at task completion",
         'info': info
     });
 });
@@ -52,7 +52,7 @@ vscode.workspace.onDidOpenTextDocument(async (document) => {
     const filePath = document.uri.fsPath;
     socket.emit("send", {
         event_type: "open_file",
-        message: "打开文件",
+        message: "File opened",
         path: filePath,
         scheme: document.uri.scheme
     });

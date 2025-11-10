@@ -14,7 +14,7 @@ async function getWorkspaceRoot() {
 getWorkspaceRoot().then((root) => {
     socket.emit("send", {
         'event_type': "get_root_when_start",
-        'message': "任务开始时获取工作区的目录",
+        'message': "Captured workspace root at task start",
         'root': root
     });
 });
@@ -24,7 +24,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时检查文件是否存在",
+        'message': "Captured workspace root at task completion",
         'root': root
     });
 });

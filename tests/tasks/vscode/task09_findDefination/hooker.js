@@ -24,7 +24,7 @@ async function inspectCppDebugSession() {
     } catch (error) {
         socket.emit("send", {
             'event_type': "error",
-            'message': `在获取debug会话时出现错误: ${error}`
+            'message': `Failed to inspect breakpoints: ${error}`
         });
         console.error('Inspection error:', error);
         throw error;
@@ -37,7 +37,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "在任务结束时检查断点信息",
+        'message': "Collected breakpoints at task completion",
         'breakpoints': breakpoints
     });
 });
@@ -47,7 +47,7 @@ vscode.workspace.onDidOpenTextDocument(async (document) => {
     const filePath = document.uri.fsPath;
     socket.emit("send", {
         event_type: "open_file",
-        message: "打开文件",
+        message: "File opened",
         path: filePath,
         scheme: document.uri.scheme
     });

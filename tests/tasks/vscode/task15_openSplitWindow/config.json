@@ -1,22 +1,26 @@
 {
     "task_id": "15",
     "task_name": "open_split_window",
-    "description": "在vscode中以拆分窗口的形式打开两个文件",
+    "description": "Open two files in VS Code using a split editor layout",
 
     "application_info": {
         "name": "vscode",
-        "executable_path": "/usr/share/code/code",
-        "args": ["--no-sandbox", "--user-data-dir=/root/vscode_user_data_dir/"]
+        "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
+        "args": [
+            "--no-sandbox",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "/workspace/.mcpworld/vscode/C-Plus-Plus"
+        ]
     },
 
     "task_parameters": {
         "first_file": "bubble_sort.cpp",
         "second_file": "bead_sort.cpp",
-        "expected_first_path": "/root/C-Plus-Plus/sorting/bubble_sort.cpp",
-        "expected_second_path": "/root/C-Plus-Plus/sorting/bead_sort.cpp"
+        "expected_first_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp",
+        "expected_second_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bead_sort.cpp"
     },
 
-    "instruction_template": "在vscode窗口中以左右拆分窗口的形式打开 ${first_file} 和 ${second_file} 两个文件",
+    "instruction_template": "Open ${first_file} and ${second_file} in VS Code using a left/right split layout",
 
     "evaluation_setup": {
         "scripts": [
@@ -33,22 +37,22 @@
     },
     "events": {
         "open_file1": {
-            "description": "成功打开目标1文件",
+            "description": "Detect that the first file was opened",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "打开文件1"
+            "key_step_name": "Open first file"
         },
         "open_file2": {
-            "description": "成功打开目标2文件",
+            "description": "Detect that the second file was opened",
             "is_key_step": true,
             "key_step_index": 2,
-            "key_step_name": "打开文件2"
+            "key_step_name": "Open second file"
         },
         "evaluate_on_completion": {
-            "description": "在任务结束时检查任务是否完成",
+            "description": "Confirm that each file is in its own split group",
             "is_key_step": true,
             "key_step_index": 3,
-            "key_step_name": "任务成功完成"
+            "key_step_name": "Files arranged in split editors"
         }
     },
     "mcp_servers": [
@@ -60,15 +64,15 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",
-            "to": "/root/.vscode/"
+            "to": "/workspace/.mcpworld/vscode/.vscode/"
         },
         {
             "from": "tests/context_data/vscode/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "to": "/workspace/.mcpworld/vscode/C-Plus-Plus"
         }
     ]
 }

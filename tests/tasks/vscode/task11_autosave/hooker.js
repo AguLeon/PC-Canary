@@ -13,7 +13,7 @@ socket.on('evaluate', async () => {
     const config = await isAutoSaveEnabled();
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "在任务结束时检查自动保存的模式",
+        'message': "Captured auto save configuration at task completion",
         'config': config
     });
 });

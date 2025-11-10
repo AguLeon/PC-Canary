@@ -1,12 +1,16 @@
 {
     "task_id": "21",
     "task_name": "checkout_branch",
-    "description": "在vscode中切换当前工作区的git分支",
+    "description": "Switch the Git branch inside the current VS Code workspace",
 
     "application_info": {
         "name": "vscode",
-        "executable_path": "/usr/share/code/code",
-        "args": ["--no-sandbox", "--user-data-dir=/root/vscode_user_data_dir/"]
+        "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
+        "args": [
+            "--no-sandbox",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "/workspace/.mcpworld/vscode/C-Plus-Plus"
+        ]
     },
 
     "task_parameters": {
@@ -15,7 +19,7 @@
         "origin_branch": "master"
     },
 
-    "instruction_template": "在vscode当前打开的工作区中切换当前工作区的git分支为 ${branch_name}, 如果当前含有没有提交的修改, 则将所有的修改提交, 提交的message填写 ${commit_message} (你需要确定当前vscode打开的工作目录路径, 调用bash并不会在当前vscode的工作目录执行命令)",
+    "instruction_template": "Switch the current VS Code workspace to branch ${branch_name}. If there are pending changes, commit them with message ${commit_message} before switching (commands need to run inside the workspace directory).",
 
     "evaluation_setup": {
         "scripts": [
@@ -32,10 +36,10 @@
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务完成时检查git信息",
+            "description": "Validate branch status and commit information at the end of the task",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "任务成功完成"
+            "key_step_name": "Branch switched successfully"
         }
     },
     "mcp_servers": [
@@ -47,15 +51,15 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",
-            "to": "/root/.vscode/"
+            "to": "/workspace/.mcpworld/vscode/.vscode/"
         },
         {
             "from": "tests/context_data/vscode/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "to": "/workspace/.mcpworld/vscode/C-Plus-Plus"
         }
     ]
 }

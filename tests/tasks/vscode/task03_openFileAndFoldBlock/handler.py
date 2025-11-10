@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional, Callable, List
 def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:    
     event_type = message.get('event_type')
     logger.info(message)
-    expected_file_name = task_parameter.get("expected_file_path", "/root/C-Plus-Plus/search/binary_search.cpp")
+    expected_file_name = task_parameter.get("expected_file_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/binary_search.cpp")
     if event_type == "evaluate_on_completion":
         is_file_opend = message.get("isFileOpen")
         file_name = message.get("fileName")
@@ -14,10 +14,10 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
         if is_file_opend and file_name == expected_file_name and are_block_folded:
             return [
                 {"status": "key_step", "index": 2},
-                {"status": "success", "reason": f"文件成功打开并且代码块全部折叠"}
+                {"status": "success", "reason": "File is open and every block is folded"}
             ]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "File or folding state does not match expectations"}]
     elif event_type == "open_file":
         file_path = message.get("path")
         if message.get("scheme") == "git":

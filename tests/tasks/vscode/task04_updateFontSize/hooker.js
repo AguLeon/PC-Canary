@@ -36,7 +36,7 @@ async function readWorkspaceSettings() {
 readWorkspaceSettings().then(settings => {
     socket.emit("send", {
         'event_type': "read_origin_content",
-        'message': "任务开始时读取settings.json文件内容",
+        'message': "Captured initial settings.json contents",
         'data': settings
     });
 });
@@ -47,7 +47,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时读取文件内容",
+        'message': "Captured settings.json contents at task completion",
         'data': settings
     });
 });
@@ -57,7 +57,7 @@ vscode.workspace.onDidOpenTextDocument(async (document) => {
     const filePath = document.uri.fsPath;
     socket.emit("send", {
         event_type: "open_file",
-        message: "打开文件",
+        message: "File opened",
         path: filePath,
         scheme: document.uri.scheme
     });

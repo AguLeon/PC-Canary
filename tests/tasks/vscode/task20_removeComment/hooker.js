@@ -14,7 +14,7 @@ async function getWorkspaceRoot() {
 getWorkspaceRoot().then(root => {
     socket.emit("send", {
         'event_type': "get_origin_file",
-        'message': "在任务开始时获取文件的全部内容",
+        'message': "Captured workspace root to read the initial file contents",
         'root': root
     });
 });
@@ -48,7 +48,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时检查任务是否完成",
+        'message': "Captured workspace root and active file at task completion",
         'root': root,
         'filename': filename
     });
@@ -59,7 +59,7 @@ vscode.workspace.onDidOpenTextDocument(async (document) => {
     const filePath = document.uri.fsPath;
     socket.emit("send", {
         event_type: "open_file",
-        message: "打开文件",
+        message: "File opened",
         path: filePath,
         scheme: document.uri.scheme
     });

@@ -25,7 +25,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时检查插件是否配置成功",
+        'message': "Captured extension list and configuration at task completion",
         'info': info,
         'names': names
     });

@@ -8,8 +8,8 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     logger.info(message)
     expected_first = task_parameter.get("first_file", "bubble_sort.cpp")
     expected_second = task_parameter.get("second_file", "bead_sort.cpp")
-    expected_first_path = task_parameter.get("expected_first_path", "/root/C-Plus-Plus/sorting/bubble_sort.cpp")
-    expected_second_path = task_parameter.get("expected_second_path", "/root/C-Plus-Plus/sorting/bead_sort.cpp")
+    expected_first_path = task_parameter.get("expected_first_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp")
+    expected_second_path = task_parameter.get("expected_second_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bead_sort.cpp")
     if event_type == "evaluate_on_completion":
         split_info = message.get('info', {}).get('splitInfo', None)
         if not split_info or len(split_info) != 2:
@@ -23,10 +23,10 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
         if (expected_first in files[0] and expected_second in files[1]) or (expected_first in files[1] and expected_second in files[0]):
             return [
                 {"status": "key_step", "index": 3},
-                {"status": "success", "reason": f"任务成功完成"}
+                {"status": "success", "reason": "Both files are open in separate split groups"}
             ]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "Split editor layout does not match expectations"}]
     elif event_type == "open_file":
         file_path = message.get("path")
         if message.get("scheme") == "git":

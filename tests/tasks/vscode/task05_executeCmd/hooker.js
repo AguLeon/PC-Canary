@@ -1,10 +1,10 @@
-// 监听终端命令开始执行
+// Listen for command execution in the terminal
 vscode.window.onDidStartTerminalShellExecution((event) => {
     // console.log(event.execution.commandLine.value);
     // console.log(event.execution.cwd.path);
     socket.emit("send", {
         'event_type': "command_execute",
-        'message': "检测到终端执行命令",
+        'message': "Detected command execution in the VS Code terminal",
         "cmd": event.execution.commandLine.value,
         "dir": event.execution.cwd.path
     });
@@ -15,6 +15,6 @@ vscode.window.onDidOpenTerminal(async (terminal) => {
     // Emit terminal creation event via socket
     socket.emit('send', {
         'event_type': 'create_terminal',
-        'message': '检测到终端创建'
+        'message': 'Detected terminal creation'
     });
 });

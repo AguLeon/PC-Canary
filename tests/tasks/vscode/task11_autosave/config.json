@@ -1,12 +1,16 @@
 {
     "task_id": "11",
     "task_name": "autosave_setting",
-    "description": "在vscode中设置自动保存",
+    "description": "Configure auto save inside VS Code",
 
     "application_info": {
         "name": "vscode",
-        "executable_path": "/usr/share/code/code",
-        "args": ["--no-sandbox", "--user-data-dir=/root/vscode_user_data_dir/"]
+        "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
+        "args": [
+            "--no-sandbox",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "/workspace/.mcpworld/vscode/C-Plus-Plus"
+        ]
     },
 
     "task_parameters": {
@@ -14,7 +18,7 @@
         "delay": 500
     },
 
-    "instruction_template": "在vscode中只将当前工作区的自动保存的模式设置为 ${mode}, 并且设置delay时延等于 ${delay}",
+    "instruction_template": "Within the current VS Code workspace, set auto save to ${mode} and configure the delay to ${delay}",
 
     "evaluation_setup": {
         "scripts": [
@@ -31,10 +35,10 @@
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务完成时检查设置是否成功",
+            "description": "Check whether the workspace auto save settings match expectations when the task finishes",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "任务成功完成"
+            "key_step_name": "Auto save updated"
         }
     },
     "mcp_servers": [
@@ -45,16 +49,16 @@
     ],
     "context_data": [
         {
-            "from": "tests/context_data/vscode/task11/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "from": "tests/context_data/vscode/user_data",
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",
-            "to": "/root/.vscode/"
+            "to": "/workspace/.mcpworld/vscode/.vscode/"
         },
         {
-            "from": "tests/context_data/vscode/task11/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "from": "tests/context_data/vscode/C-Plus-Plus",
+            "to": "/workspace/.mcpworld/vscode/C-Plus-Plus"
         }
     ]
 }

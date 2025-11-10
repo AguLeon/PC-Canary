@@ -33,7 +33,7 @@ async function getGitBranch(workspacePath) {
     } catch (error) {
         socket.emit("send", {
             'event_type': "error",
-            'message': `任务评估时获取仓库分支名称报错: ${error.message}`
+            'message': `Failed to read repository branch information: ${error.message}`
         });
         console.error(`Error getting Git branch for ${workspacePath}: ${error.message}`);
         throw new Error(`Failed to get Git branch: ${error.message}`);
@@ -46,7 +46,7 @@ try {
     if (!workspaceFolders || workspaceFolders.length === 0) {
         socket.emit("send", {
             'event_type': "error",
-            'message': `没有打开工作区`
+            'message': "No workspace folder is open in VS Code"
         });
     }
     
@@ -58,7 +58,7 @@ try {
     if (!gitExtension) {
         socket.emit("send", {
             'event_type': "error",
-            'message': `无法获取vscode git扩展的API`
+            'message': "Unable to access the VS Code Git extension API"
         });
     }
     
@@ -68,7 +68,7 @@ try {
     if (!repository) {
         socket.emit("send", {
             'event_type': "error",
-            'message': `当前工作区不是git仓库`
+            'message': "The current workspace is not a Git repository"
         });
     }
     
@@ -86,7 +86,7 @@ try {
         const branchname = await getGitBranch();
         socket.emit("send", {
             'event_type': "repo_changed",
-            'message': `检测到仓库出现了修改`,
+            'message': "Detected repository changes",
             'haschanges': hasChanges,
             'lastcommit': lastCommitMessage,
             'branchname': branchname
@@ -104,7 +104,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时检查任务是否完成",
+        'message': "Captured repository state at task completion",
         'branchname': branchname
     });
 });

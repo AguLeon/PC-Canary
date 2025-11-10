@@ -1,5 +1,5 @@
 /**
- * 检查当前工作区是否有未提交的Git修改并获取最近的commit message
+ * Inspect the current workspace for pending Git changes and capture the latest commit message.
  * @returns {Promise<{hasChanges: boolean, lastCommitMessage: string | null}>}
  */
 async function checkGitStatus() {
@@ -42,7 +42,7 @@ async function checkGitStatus() {
     } catch (error) {
         socket.emit("send", {
             'event_type': "error",
-            'message': `在查看git仓库时出现了错误: ${error.message}`
+            'message': `Failed to inspect the git repository: ${error.message}`
         });
         return { hasChanges: false, lastCommitMessage: null };
     }
@@ -51,12 +51,12 @@ async function checkGitStatus() {
 // Listen for 'evaluate' event
 socket.on('evaluate', async () => {
     const { hasChanges, lastCommitMessage } = await checkGitStatus();
-    const message1 = hasChanges ? `工作区仍有未提交的修改` : `工作区所有修改已提交`;
-    const message2 = `最近的commit信息是:\n`+lastCommitMessage;
+    const message1 = hasChanges ? `Workspace still has uncommitted changes` : `Workspace is clean`;
+    const message2 = `Latest commit message:\n${lastCommitMessage}`;
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': message1+`\n`+message2,
+        'message': `${message1}\n${message2}`,
         'has_changes': hasChanges,
         'last_message': lastCommitMessage
     });

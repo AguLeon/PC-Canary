@@ -54,8 +54,8 @@ async function checkFileStatus() {
 // Listen for 'evaluate' event
 socket.on('evaluate', async () => {
     const { isFileOpen, fileName, areAllBlocksFolded } = await checkFileStatus();
-    let message1 = isFileOpen ? `${fileName}文件被成功打开` : `没有文件被打开`;
-    let message2 = areAllBlocksFolded ? `所有的代码块都被成功折叠` : `代码块没有被成功折叠`;
+    let message1 = isFileOpen ? `${fileName} is currently open` : `No editor is open`;
+    let message2 = areAllBlocksFolded ? `All foldable ranges are collapsed` : `Some foldable ranges remain expanded`;
     // vscode.window.showInformationMessage(message1);
     // vscode.window.showInformationMessage(message2);
     socket.emit("send", {
@@ -72,7 +72,7 @@ vscode.workspace.onDidOpenTextDocument(async (document) => {
     const filePath = document.uri.fsPath;
     socket.emit("send", {
         event_type: "open_file",
-        message: "打开文件",
+        message: "File opened",
         path: filePath,
         scheme: document.uri.scheme
     });

@@ -21,7 +21,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时检查功能是否已经打开",
+        'message': "Captured blame decoration setting at task completion",
         'blameon': blame_on
     });
 });

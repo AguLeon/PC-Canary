@@ -1,19 +1,22 @@
 {
     "task_id": "07",
     "task_name": "open_new_window",
-    "description": "将指定目录在一个新的vscode应用窗口中打开",
+    "description": "Attach a new VS Code window and open the specified directory in it",
 
     "application_info": {
         "name": "vscode",
-        "executable_path": "/usr/share/code/code",
-        "args": ["--no-sandbox", "--user-data-dir=/root/vscode_user_data_dir/"]
+        "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
+        "args": [
+            "--no-sandbox",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir"
+        ]
     },
 
     "task_parameters": {
-        "work_space_dir": "/root/C-Plus-Plus/data_structures"
+        "work_space_dir": "/workspace/.mcpworld/vscode/C-Plus-Plus/data_structures"
     },
 
-    "instruction_template": "在当前vscode窗口上附加新的窗口, 并且在新窗口打开目录 ${work_space_dir}",
+    "instruction_template": "Attach a new VS Code window and open ${work_space_dir} inside it",
 
     "evaluation_setup": {
         "scripts": [
@@ -30,10 +33,10 @@
     },
     "events": {
         "get_work_spaces": {
-            "description": "获取已经打开的工作区的目录",
+            "description": "Record the directories that are open as workspaces",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "成功打开工作区"
+            "key_step_name": "Target workspace opened"
         }
     },
     "mcp_servers": [
@@ -45,15 +48,15 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",
-            "to": "/root/.vscode/"
+            "to": "/workspace/.mcpworld/vscode/.vscode/"
         },
         {
             "from": "tests/context_data/vscode/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "to": "/workspace/.mcpworld/vscode/C-Plus-Plus"
         }
     ]
 }

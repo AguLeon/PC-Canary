@@ -82,7 +82,7 @@ socket.on('evaluate', async () => {
     // vscode.window.showInformationMessage(message);
     socket.emit("send", {
         'event_type': "evaluate_on_completion",
-        'message': "任务结束时检查任务是否完成",
+        'message': "Captured compare view information at task completion",
         'info': info
     });
 });

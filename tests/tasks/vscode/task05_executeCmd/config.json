@@ -1,20 +1,24 @@
 {
     "task_id": "05",
     "task_name": "execute_command_in_vscode_terminal",
-    "description": "在vscode中打开终端, 并且在终端执行命令",
+    "description": "Open a VS Code terminal, navigate to a directory, and run a command",
 
     "application_info": {
         "name": "vscode",
-        "executable_path": "/usr/share/code/code",
-        "args": ["--no-sandbox", "--user-data-dir=/root/vscode_user_data_dir/"]
+        "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
+        "args": [
+            "--no-sandbox",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "/workspace/.mcpworld/vscode/C-Plus-Plus"
+        ]
     },
 
     "task_parameters": {
-        "dir": "/root/C-Plus-Plus/data_structures",
+        "dir": "/workspace/.mcpworld/vscode/C-Plus-Plus/data_structures",
         "cmd": "tree"
     },
 
-    "instruction_template": "在vscode当前工作区中打开终端, 并且在终端中切换到 ${dir} 目录下执行命令 ${cmd}",
+    "instruction_template": "Open a terminal in the current VS Code workspace, change into ${dir}, and run ${cmd}",
 
     "evaluation_setup": {
         "scripts": [
@@ -31,16 +35,16 @@
     },
     "events": {
         "command_execute": {
-            "description": "检测到终端执行命令",
+            "description": "Detect that the command ran inside the terminal",
             "is_key_step": true,
             "key_step_index": 2,
-            "key_step_name": "在终端执行命令"
+            "key_step_name": "Run the command"
         },
         "create_terminal": {
-            "description": "检测到创建新的终端",
+            "description": "Detect that a new terminal was created",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "创建终端"
+            "key_step_name": "Create the terminal"
         }
     },
     "mcp_servers": [
@@ -52,15 +56,15 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",
-            "to": "/root/.vscode/"
+            "to": "/workspace/.mcpworld/vscode/.vscode/"
         },
         {
             "from": "tests/context_data/vscode/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "to": "/workspace/.mcpworld/vscode/C-Plus-Plus"
         }
     ]
 }

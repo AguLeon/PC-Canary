@@ -1,21 +1,25 @@
 {
     "task_id": "24",
     "task_name": "change_to_camelCase",
-    "description": "在vscode中打开文件, 并且将文件中的所有变量、函数的命名方法从下划线命名法更改为大驼峰命名法",
+    "description": "Open a file in VS Code and convert every variable/function name from snake_case to UpperCamelCase",
 
     "application_info": {
         "name": "vscode",
-        "executable_path": "/usr/share/code/code",
-        "args": ["--no-sandbox", "--user-data-dir=/root/vscode_user_data_dir/"]
+        "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
+        "args": [
+            "--no-sandbox",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "/workspace/.mcpworld/vscode/C-Plus-Plus"
+        ]
     },
 
     "task_parameters": {
         "filename": "change_name.cpp",
         "expected_file_content": "#include<iostream>#include<vector>voidInsertionSort(std::vector<int>&Array){intArraySize=Array.size();for(intI=1;I<ArraySize;I++){intKey=Array[I];intJ=I-1;while(J>=0&&Array[J]>Key){Array[J+1]=Array[J];J--;}Array[J+1]=Key;}}intmain(){std::vector<int>InputArray={64,34,25,12,22,11,90};InsertionSort(InputArray);for(intNum:InputArray){std::cout<<Num<<\"\";}std::cout<<std::endl;return0;}",
-        "expected_file_path": "/root/C-Plus-Plus/agent_test/change_name.cpp"
+        "expected_file_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/agent_test/change_name.cpp"
     },
 
-    "instruction_template": "在vscode中打开当前工作区中名为 ${filename} 的文件, 将文件中所有的变量名(包括i、j、k等)、函数名都修改为使用大驼峰命名法命名",
+    "instruction_template": "Open ${filename} in the current VS Code workspace and rename every identifier (including loop counters) to UpperCamelCase",
 
     "evaluation_setup": {
         "scripts": [
@@ -32,10 +36,10 @@
     },
     "events": {
         "evaluate_on_completion": {
-            "description": "在任务结束时检查任务是否完成",
+            "description": "Verify that the file matches the expected contents and has no diagnostics",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "任务成功完成"
+            "key_step_name": "Renaming complete"
         }
     },
     "mcp_servers": [
@@ -47,15 +51,15 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",
-            "to": "/root/.vscode/"
+            "to": "/workspace/.mcpworld/vscode/.vscode/"
         },
         {
             "from": "tests/context_data/vscode/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "to": "/workspace/.mcpworld/vscode/C-Plus-Plus"
         }
     ]
 }

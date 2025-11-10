@@ -25,8 +25,8 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
         if expect_branchname == message.get('branchname', None) and not HAS_CHANGES and LAST_COMMIT == expect_commitmessage:
             return [
                 {"status": "key_step", "index": 1},
-                {"status": "success", "reason": f"任务成功完成"}
+                {"status": "success", "reason": "Workspace branch switched and intermediate commit recorded"}
             ]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "Branch or commit state does not match expectations"}]
     return None

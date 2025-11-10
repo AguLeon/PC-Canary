@@ -1,20 +1,24 @@
 {
     "task_id": "04",
     "task_name": "update_font_size",
-    "description": "在vscode工作区中修改或创建.vscode/settings.json文件, 将字体的大小设置为16",
+    "description": "Update or create .vscode/settings.json in the VS Code workspace and set the font size to 16",
 
     "application_info": {
         "name": "vscode",
-        "executable_path": "/usr/share/code/code",
-        "args": ["--no-sandbox", "--user-data-dir=/root/vscode_user_data_dir/"]
+        "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
+        "args": [
+            "--no-sandbox",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "/workspace/.mcpworld/vscode/C-Plus-Plus"
+        ]
     },
 
     "task_parameters": {
         "font_size": 16,
-        "expected_file_path": "/root/C-Plus-Plus/.vscode/settings.json"
+        "expected_file_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/.vscode/settings.json"
     },
 
-    "instruction_template": "在vscode当前工作区中修改或创建.vscode/settings.json配置文件, 将字体大小设置为 ${font_size}, 注意保存文件",
+    "instruction_template": "Modify or create .vscode/settings.json in the current VS Code workspace, set the font size to ${font_size}, and save the file",
 
     "evaluation_setup": {
         "scripts": [
@@ -31,20 +35,20 @@
     },
     "events": {
         "read_origin_content": {
-            "description": "任务开始时读取settings.json文件内容",
+            "description": "Read settings.json when the task starts",
             "is_key_step": false
         },
         "evaluate_on_completion": {
-            "description": "在任务结束时判断settings.json配置文件是否符合预期",
+            "description": "Validate that settings.json matches the expected contents at the end of the task",
             "is_key_step": true,
             "key_step_index": 2,
-            "key_step_name": "在任务结束时检查配置文件是否正确"
+            "key_step_name": "Confirm settings.json is correct"
         },
         "open_file": {
-            "description": "打开文件",
+            "description": "Detect that the settings.json file was opened",
             "is_key_step": true,
             "key_step_index": 1,
-            "key_step_name": "在vscode中打开文件"
+            "key_step_name": "Open the file in VS Code"
         }
     },
     "mcp_servers": [
@@ -56,15 +60,15 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/root/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",
-            "to": "/root/.vscode/"
+            "to": "/workspace/.mcpworld/vscode/.vscode/"
         },
         {
             "from": "tests/context_data/vscode/C-Plus-Plus",
-            "to": "/root/C-Plus-Plus"
+            "to": "/workspace/.mcpworld/vscode/C-Plus-Plus"
         }
     ]
 }

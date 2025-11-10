@@ -29,8 +29,8 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
         if file_list == expected_file_list:
             return [
                 {"status": "key_step", "index": 1},
-                {"status": "success", "reason": f"任务成功完成"}
+                {"status": "success", "reason": "All files now use the expected suffix"}
             ]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "Renamed file list does not match expectations"}]
     return None

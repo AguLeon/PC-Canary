@@ -13,8 +13,8 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
         if not has_changes and expected_message == last_message:
             return [
                 {"status": "key_step", "index": 1},
-                {"status": "success", "reason": f"任务成功完成"}
+                {"status": "success", "reason": "Repository is clean and commit message matches expectation"}
             ]
         else:
-            return [{"status": "error", "type": "evaluate_on_completion", "message": "任务没有完成"}]
+            return [{"status": "error", "type": "evaluate_on_completion", "message": "Repository still has changes or commit message mismatch"}]
     return None
