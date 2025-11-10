@@ -20,9 +20,6 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
                 {"status": "key_step", "index": 1}
             ]
     elif event_type == "read_origin_content":
-        print("*" * 100)
-        print(message)
-        print("*" * 100)
         origin_file_content = message.get("content")
     elif event_type == "evaluate_on_completion":
         if origin_file_content:
