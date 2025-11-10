@@ -18,7 +18,7 @@ async function readFile(path) {
     }
 }
 
-readFile("/root/C-Plus-Plus/sorting/bubble_sort.cpp").then(origin_file_content => {
+readFile("/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp").then(origin_file_content => {
     socket.emit("send", {
         event_type: "read_origin_content",
         message: "初始文件内容",

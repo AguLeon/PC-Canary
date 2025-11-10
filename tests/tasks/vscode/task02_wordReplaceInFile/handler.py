@@ -10,7 +10,7 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     global origin_file_content, file_path
     event_type = message.get('event_type')
     logger.info(message)
-    expected_path = task_parameter.get("expected_path", "/root/C-Plus-Plus/sorting/bubble_sort.cpp")
+    expected_path = task_parameter.get("expected_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp")
     if event_type == "open_file":
         file_path = message.get("path")
         if message.get("scheme") == "git":
