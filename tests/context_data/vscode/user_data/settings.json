@@ -27,6 +27,8 @@
         "**/Thumbs.db": true
     },
 
+    "security.workspace.trust.enabled": false,
+
     "terminal.integrated.fontSize": 12,
     "terminal.integrated.defaultProfile.windows": "PowerShell",
 
