@@ -263,8 +263,8 @@ class BaseEvaluator:
                     self.logger.warning(f"No callback function found in: {module_path}")
             else:
                 self.logger.warning(f"Callback file does not exist: {module_path}")
-            except Exception as e:
-                self.logger.error(f"Failed to import callback module: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"Failed to import callback module: {str(e)}")
 
     def _on_message(self, message: Dict[str, Any], data: Any) -> None:
         """
