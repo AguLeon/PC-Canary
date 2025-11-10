@@ -16,8 +16,8 @@
     "task_parameters": {
         "file_name1": "quick_sort.cpp",
         "file_name2": "quick_sort_3.cpp",
-        "file1": "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/quick_sort.cpp",
-        "file2": "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/quick_sort_3.cpp"
+        "file1": "/workspace/.mcpworld/vscode/C-Plus-Plus/quick_sort.cpp",
+        "file2": "/workspace/.mcpworld/vscode/C-Plus-Plus/quick_sort_3.cpp"
     },
 
     "instruction_template": "Use VS Code to open ${file_name1} and ${file_name2}, then launch the built-in Compare feature",

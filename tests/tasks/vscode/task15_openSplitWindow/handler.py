@@ -8,8 +8,8 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     logger.info(message)
     expected_first = task_parameter.get("first_file", "bubble_sort.cpp")
     expected_second = task_parameter.get("second_file", "bead_sort.cpp")
-    expected_first_path = task_parameter.get("expected_first_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp")
-    expected_second_path = task_parameter.get("expected_second_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bead_sort.cpp")
+    expected_first_path = task_parameter.get("expected_first_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort.cpp")
+    expected_second_path = task_parameter.get("expected_second_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/bead_sort.cpp")
     if event_type == "evaluate_on_completion":
         split_info = message.get('info', {}).get('splitInfo', None)
         if not split_info or len(split_info) != 2:

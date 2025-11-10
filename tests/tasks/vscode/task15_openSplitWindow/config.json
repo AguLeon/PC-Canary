@@ -16,8 +16,8 @@
     "task_parameters": {
         "first_file": "bubble_sort.cpp",
         "second_file": "bead_sort.cpp",
-        "expected_first_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp",
-        "expected_second_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bead_sort.cpp"
+        "expected_first_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort.cpp",
+        "expected_second_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/bead_sort.cpp"
     },
 
     "instruction_template": "Open ${first_file} and ${second_file} in VS Code using a left/right split layout",

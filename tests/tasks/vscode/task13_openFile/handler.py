@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional, List
 def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:    
     event_type = message.get('event_type')
     logger.info(message.get('message'))
-    expected_file_path = task_parameter.get("expected_file_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/recursive_bubble_sort.cpp")
+    expected_file_path = task_parameter.get("expected_file_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/recursive_bubble_sort.cpp")
     if event_type == "evaluate_on_completion":
         file_name = message.get('info', {}).get('fileName', None)
         line_number = message.get('info', {}).get('lineNumber', None)

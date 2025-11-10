@@ -6,8 +6,8 @@ from typing import Dict, Any, Optional, List
 def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:    
     event_type = message.get('event_type')
     logger.info(message)
-    expected_file1 = task_parameter.get("file1", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/quick_sort.cpp")
-    expected_file2 = task_parameter.get("file2", "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/quick_sort_3.cpp")
+    expected_file1 = task_parameter.get("file1", "/workspace/.mcpworld/vscode/C-Plus-Plus/quick_sort.cpp")
+    expected_file2 = task_parameter.get("file2", "/workspace/.mcpworld/vscode/C-Plus-Plus/quick_sort_3.cpp")
     if event_type == "evaluate_on_completion":
         info = message.get('info', None)
         if not info:
