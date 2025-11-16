@@ -37,12 +37,9 @@ class IpcInjector:
 
         @sio.event
         def connect(sid, _):
-            _safe_log("info", f"Client attempting to connect: {sid}")
-
             # First, try to register the session ID
             try:
                 shared_dict['target_session_id'].append(sid)
-                _safe_log("info", f"Client app connected to server: {sid}")
             except (BrokenPipeError, Exception) as exc:
                 # Even if we can't write to shared_dict, accept the connection
                 # The session will be tracked when load_scripts is called
@@ -51,31 +48,25 @@ class IpcInjector:
             # Try to inject any existing scripts, but don't fail if we can't read them
             try:
                 scripts_snapshot = list(shared_dict['scripts'])
-                _safe_log("info", f"Found {len(scripts_snapshot)} scripts to inject")
-
-                for (p, l) in scripts_snapshot:
-                    try:
-                        s = []
-                        with open(p, 'r', encoding="UTF8") as f:
-                            s.append(f.read())
-                        for i in l:
-                            with open(i, 'r', encoding="UTF8") as f:
+                if scripts_snapshot:
+                    for (p, l) in scripts_snapshot:
+                        try:
+                            s = []
+                            with open(p, 'r', encoding="UTF8") as f:
                                 s.append(f.read())
-                        c = "\n".join(s)
-                        sio.emit('inject', c, to=sid)
-                        _safe_log("info", f"Successfully injected script into {sid}")
-                    except Exception as exc:
-                        _safe_log("error", f"Failed to send script to {sid}: {exc}")
+                            for i in l:
+                                with open(i, 'r', encoding="UTF8") as f:
+                                    s.append(f.read())
+                            c = "\n".join(s)
+                            sio.emit('inject', c, to=sid)
+                        except Exception as exc:
+                            _safe_log("error", f"Failed to send script to {sid}: {exc}")
+                    _safe_log("info", f"Client {sid} connected, injected {len(scripts_snapshot)} script(s)")
+                else:
+                    _safe_log("info", f"Client {sid} connected")
             except (BrokenPipeError, Exception) as exc:
                 # If we can't read scripts now, they'll be injected later via load_scripts
                 _safe_log("warning", f"Unable to read scripts on connection: {exc}, will inject later through load_scripts")
-
-            # Log current sessions for debugging
-            try:
-                current_sessions = list(shared_dict['target_session_id'])
-                _safe_log("info", f"Current connected sessions: {current_sessions}")
-            except:
-                pass
 
             # Always accept the connection
             return True
@@ -83,33 +74,31 @@ class IpcInjector:
         @sio.event
         def send(sid, message):
             # Put the message into the queue for the main process to handle
-            _safe_log("info", f"App sending message to evaluator: {message.get('event_type', 'unknown')}")
             try:
                 shared_dict['msg_from_app'].append({
                     'type': 'message',
                     'content': message
                 })
-                _safe_log("info", "Message added to queue")
+                _safe_log("info", f"App → evaluator: {message.get('event_type', 'unknown')}")
             except (BrokenPipeError, Exception) as exc:
-                _safe_log("error", f"Unable to add message to queue: {exc}")
+                _safe_log("error", f"Unable to queue message: {exc}")
 
         def process_message_queue():
             # Function to process the message queue once
             try:
                 if shared_dict['msg_from_evaluator']:
                     for msg in shared_dict['msg_from_evaluator']:
-                        _safe_log("debug", f"process_message_queue processing message: {msg}")
                         if msg['type'] == 'inject' and 'sid' in msg and 'content' in msg:
-                            _safe_log("info", f"Sending inject message to {msg['sid']}")
                             sio.emit('inject', msg['content'], to=msg['sid'])
+                            _safe_log("info", f"Evaluator → app: inject to {msg['sid']}")
                         elif msg['type'] == 'evaluate' and 'sid' in msg:
-                            _safe_log("info", f"socketio emit evaluate -> {msg['sid']}")
                             sio.emit('evaluate', to=msg['sid'])
+                            _safe_log("info", f"Evaluator → app: evaluate to {msg['sid']}")
                         else:
-                            _safe_log("warning", f"Invalid message format or missing sid: {msg}")
+                            _safe_log("warning", f"Invalid message format: {msg.get('type', 'unknown')}")
                     shared_dict['msg_from_evaluator'][:] = []
             except BrokenPipeError as e:
-                _safe_log("error", f"Error processing message (broken pipe), stopping message loop: {e}")
+                _safe_log("error", f"Broken pipe, stopping message loop: {e}")
                 return
             except Exception as e:
                 _safe_log("error", f"Error processing message: {str(e)}")
