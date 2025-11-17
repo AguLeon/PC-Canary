@@ -7,7 +7,7 @@
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
@@ -16,7 +16,7 @@
         "expected_file_content": "#include<iostream>#include<vector>voidInsertionSort(std::vector<int>&Array){intArraySize=Array.size();for(intI=1;I<ArraySize;I++){intKey=Array[I];intJ=I-1;while(J>=0&&Array[J]>Key){Array[J+1]=Array[J];J--;}Array[J+1]=Key;}}intmain(){std::vector<int>InputArray={64,34,25,12,22,11,90};InsertionSort(InputArray);for(intNum:InputArray){std::cout<<Num<<\"\";}std::cout<<std::endl;return0;}",
         "expected_file_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/agent_test/change_name.cpp"
     },
-    "instruction_template": "Open ${filename} in the current VS Code workspace and rename every identifier (including loop counters) to UpperCamelCase",
+    "instruction_template": "Open ${filename} in the current VS Code workspace and rename every identifier (including loop counters) to UpperCamelCase. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
     "evaluation_setup": {
         "scripts": [
             {
@@ -55,7 +55,7 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/user_data"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",

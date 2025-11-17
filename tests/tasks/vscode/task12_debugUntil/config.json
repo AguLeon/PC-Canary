@@ -7,7 +7,7 @@
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
@@ -33,7 +33,7 @@
         },
         "expected_program": "/workspace/.mcpworld/vscode/C-Plus-Plus/agent_test/debug_until"
     },
-    "instruction_template": "Switch VS Code to the ${directory} workspace, configure debugging for ${file_name}, add breakpoints ${breakpoints}, start debugging, and continue until ${state}",
+    "instruction_template": "Switch VS Code to the ${directory} workspace, configure debugging for ${file_name}, add breakpoints ${breakpoints}, start debugging, and continue until ${state}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
     "evaluation_setup": {
         "scripts": [
             {
@@ -102,7 +102,7 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/user_data"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",

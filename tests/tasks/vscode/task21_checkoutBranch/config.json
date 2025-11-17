@@ -7,7 +7,7 @@
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
@@ -16,7 +16,7 @@
         "commit_message": "temp commit for checkout",
         "origin_branch": "master"
     },
-    "instruction_template": "Switch the current VS Code workspace to branch ${branch_name}. If there are pending changes, commit them with message ${commit_message} before switching (commands need to run inside the workspace directory).",
+    "instruction_template": "Switch the current VS Code workspace to branch ${branch_name}. If there are pending changes, commit them with message ${commit_message} before switching (commands need to run inside the workspace directory). Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
     "evaluation_setup": {
         "scripts": [
             {
@@ -55,7 +55,7 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/user_data"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",

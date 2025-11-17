@@ -7,7 +7,7 @@
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
@@ -15,7 +15,7 @@
         "mode": "afterDelay",
         "delay": 500
     },
-    "instruction_template": "Within the current VS Code workspace, set auto save to ${mode} and configure the delay to ${delay}",
+    "instruction_template": "Within the current VS Code workspace, set auto save to ${mode} and configure the delay to ${delay}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
     "evaluation_setup": {
         "scripts": [
             {
@@ -54,7 +54,7 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/user_data"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",

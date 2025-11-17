@@ -7,7 +7,7 @@
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
@@ -17,7 +17,7 @@
         "expected_first_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort.cpp",
         "expected_second_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/bead_sort.cpp"
     },
-    "instruction_template": "Open ${first_file} and ${second_file} in VS Code using a left/right split layout",
+    "instruction_template": "Open ${first_file} and ${second_file} in VS Code using a left/right split layout. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
     "evaluation_setup": {
         "scripts": [
             {
@@ -68,7 +68,7 @@
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/user_data"
+            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
         },
         {
             "from": "tests/context_data/vscode/extensions",

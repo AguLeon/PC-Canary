@@ -6,14 +6,18 @@
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
-        "args": ["--no-sandbox", "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir"]
+        "args": [
+            "--no-sandbox",
+            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "/workspace/.mcpworld/vscode/C-Plus-Plus"
+        ]
     },
 
     "task_parameters": {
         "theme": "Default Light+"
     },
 
-    "instruction_template": "Change the VS Code color theme to ${theme}",
+    "instruction_template": "Change the VS Code color theme to ${theme}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
 
     "evaluation_setup": {
         "scripts": [

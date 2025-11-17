@@ -17,7 +17,7 @@
         "expected_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort.cpp"
     },
 
-    "instruction_template": "Open the file named ${file_name} in the current VS Code workspace, replace **every occurrence** of ${origin_name} with ${expected_name} (there's more than one ${origin_name}), and make sure the file is saved. The workspace is at `/workspace/.mcpworld/vscode/C-Plus-Plus`",
+    "instruction_template": "Open the file named ${file_name} in the current VS Code workspace, replace **every occurrence** of ${origin_name} with ${expected_name} (there's more than one ${origin_name}), and make sure the file is saved. The workspace is at `/workspace/.mcpworld/vscode/C-Plus-Plus`. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
 
     "evaluation_setup": {
         "scripts": [
