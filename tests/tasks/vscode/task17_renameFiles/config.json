@@ -2,29 +2,31 @@
     "task_id": "17",
     "task_name": "rename_files",
     "description": "Batch rename files inside the current VS Code workspace",
-
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
-
     "task_parameters": {
         "relative_path": "greedy_algorithms",
         "origin_suffix": ".h",
         "expected_suffix": ".hpp"
     },
-
     "instruction_template": "Inside ${relative_path} (relative to the current VS Code workspace), rename every file ending with ${origin_suffix} so it uses ${expected_suffix}",
-
     "evaluation_setup": {
         "scripts": [
-            { "role": "hook",    "path": "hooker.js" },
-            { "role": "handler", "path": "handler.py" }
+            {
+                "role": "hook",
+                "path": "hooker.js"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
@@ -45,13 +47,15 @@
     "mcp_servers": [
         {
             "command": "mcp-proxy",
-            "args": ["http://127.0.0.1:6010/sse"]
+            "args": [
+                "http://127.0.0.1:6010/sse"
+            ]
         }
     ],
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/user_data"
         },
         {
             "from": "tests/context_data/vscode/extensions",

@@ -2,30 +2,32 @@
     "task_id": "19",
     "task_name": "compare_files",
     "description": "Compare two files inside VS Code to see their differences",
-
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
-
     "task_parameters": {
         "file_name1": "quick_sort.cpp",
         "file_name2": "quick_sort_3.cpp",
         "file1": "/workspace/.mcpworld/vscode/C-Plus-Plus/quick_sort.cpp",
         "file2": "/workspace/.mcpworld/vscode/C-Plus-Plus/quick_sort_3.cpp"
     },
-
     "instruction_template": "Use VS Code to open ${file_name1} and ${file_name2}, then launch the built-in Compare feature",
-
     "evaluation_setup": {
         "scripts": [
-            { "role": "hook",    "path": "hooker.js" },
-            { "role": "handler", "path": "handler.py" }
+            {
+                "role": "hook",
+                "path": "hooker.js"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
@@ -46,13 +48,15 @@
     "mcp_servers": [
         {
             "command": "mcp-proxy",
-            "args": ["http://127.0.0.1:6010/sse"]
+            "args": [
+                "http://127.0.0.1:6010/sse"
+            ]
         }
     ],
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/user_data"
         },
         {
             "from": "tests/context_data/vscode/extensions",

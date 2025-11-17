@@ -2,28 +2,30 @@
     "task_id": "18",
     "task_name": "configure_plugin",
     "description": "Install a VS Code extension and adjust its configuration",
-
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir"
+            "--user-data-dir=/workspace/.mcpworld/vscode/user_data"
         ]
     },
-
     "task_parameters": {
         "plugin_name": "TODO Highlight",
         "instruction": "Configure the extension so that highlighting is case-insensitive",
         "value": false
     },
-
     "instruction_template": "Install the ${plugin_name} extension in VS Code and ${instruction}",
-
     "evaluation_setup": {
         "scripts": [
-            { "role": "hook",    "path": "hooker.js" },
-            { "role": "handler", "path": "handler.py" }
+            {
+                "role": "hook",
+                "path": "hooker.js"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
@@ -50,13 +52,15 @@
     "mcp_servers": [
         {
             "command": "mcp-proxy",
-            "args": ["http://127.0.0.1:6010/sse"]
+            "args": [
+                "http://127.0.0.1:6010/sse"
+            ]
         }
     ],
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/user_data"
         },
         {
             "from": "tests/context_data/vscode/extensions",

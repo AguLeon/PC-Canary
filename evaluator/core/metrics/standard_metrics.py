@@ -88,7 +88,7 @@ class TokenCounterMetric(BaseMetric):
                 self.total_tokens = self.total_prompt_tokens + self.total_completion_tokens
                 self.logger.debug(f"Token 累计: Prompt={self.total_prompt_tokens}, Completion={self.total_completion_tokens}, Total={self.total_tokens}")
             else:
-                self.logger.warning(f"LLM_QUERY_END 事件缺少有效的 token 数据: {data}")
+                self.logger.warning(f"LLM_QUERY_END event missing valid token data: {data}")
 
     def get_value(self) -> Dict[str, int]:
         return {

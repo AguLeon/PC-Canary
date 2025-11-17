@@ -2,28 +2,30 @@
     "task_id": "11",
     "task_name": "autosave_setting",
     "description": "Configure auto save inside VS Code",
-
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
-
     "task_parameters": {
         "mode": "afterDelay",
         "delay": 500
     },
-
     "instruction_template": "Within the current VS Code workspace, set auto save to ${mode} and configure the delay to ${delay}",
-
     "evaluation_setup": {
         "scripts": [
-            { "role": "hook",    "path": "hooker.js" },
-            { "role": "handler", "path": "handler.py" }
+            {
+                "role": "hook",
+                "path": "hooker.js"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
@@ -44,13 +46,15 @@
     "mcp_servers": [
         {
             "command": "mcp-proxy",
-            "args": ["http://127.0.0.1:6010/sse"]
+            "args": [
+                "http://127.0.0.1:6010/sse"
+            ]
         }
     ],
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/user_data"
         },
         {
             "from": "tests/context_data/vscode/extensions",

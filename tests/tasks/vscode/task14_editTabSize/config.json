@@ -2,28 +2,30 @@
     "task_id": "14",
     "task_name": "edit_tab_size",
     "description": "Set the tab size for the current VS Code workspace to 2",
-
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
-
     "task_parameters": {
         "tab_size": 2,
         "expected_file_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/.vscode/settings.json"
     },
-
     "instruction_template": "Only change the current VS Code workspace tab size to ${tab_size}",
-
     "evaluation_setup": {
         "scripts": [
-            { "role": "hook",    "path": "hooker.js" },
-            { "role": "handler", "path": "handler.py" }
+            {
+                "role": "hook",
+                "path": "hooker.js"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
@@ -50,13 +52,15 @@
     "mcp_servers": [
         {
             "command": "mcp-proxy",
-            "args": ["http://127.0.0.1:6010/sse"]
+            "args": [
+                "http://127.0.0.1:6010/sse"
+            ]
         }
     ],
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/user_data"
         },
         {
             "from": "tests/context_data/vscode/extensions",

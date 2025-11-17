@@ -20,13 +20,17 @@ async function readFile(path) {
     }
 }
 
-readFile("/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort.cpp").then(origin_file_content => {
-    socket.emit("send", {
-        event_type: "read_origin_content",
-        message: "Captured original file contents at task start",
-        content: origin_file_content
+// Send initial file content after a brief delay to ensure socket is fully connected
+// The script is injected during the connect event, so we need to wait for that to complete
+setTimeout(() => {
+    readFile("/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort.cpp").then(origin_file_content => {
+        socket.emit("send", {
+            event_type: "read_origin_content",
+            message: "Captured original file contents at task start",
+            content: origin_file_content
+        });
     });
-});
+}, 100);
 
 // Listen for 'evaluate' event
 socket.on('evaluate', async () => {

@@ -2,29 +2,31 @@
     "task_id": "23",
     "task_name": "fix_error",
     "description": "Open a file in VS Code and fix all compilation errors",
-
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
-
     "task_parameters": {
         "filename": "fix_error.cpp",
         "expected_file_content": "#include<cmath>#include<complex>#include<iostream>#include<stdexcept>#include<vector>constdoublePI=3.14159265358979323846;classFftCalculator{private:voidbutterflyTransform(std::vector<std::complex<double>>&inputData,boolisInverse){size_tdataSize=inputData.size();if(dataSize<=1)return;if((dataSize&(dataSize-1))!=0){throwstd::invalid_argument(\"Inputsizemustbepowerof2\");}for(size_ti=0,j=0;i<dataSize;++i){if(j>i){std::swap(inputData[i],inputData[j]);}size_tm=dataSize;while(j&(m>>=1)){j&=~m;}j|=m;}for(size_tstage=1;stage<dataSize;stage<<=1){size_thalfSize=stage;size_tstepSize=stage<<1;doubleangleFactor=(isInverse?PI:-PI)/halfSize;for(size_ti=0;i<dataSize;i+=stepSize){for(size_tj=0;j<halfSize;++j){autotwiddleFactor=std::polar(1.0,angleFactor*j);autotemp=inputData[i+j+halfSize]*twiddleFactor;inputData[i+j+halfSize]=inputData[i+j]-temp;inputData[i+j]+=temp;}}}if(isInverse){for(auto&value:inputData){value/=dataSize;}}}public:std::vector<std::complex<double>>computeFft(conststd::vector<double>&inputSignal){size_tsignalSize=inputSignal.size();std::vector<std::complex<double>>complexInput(signalSize);for(size_ti=0;i<signalSize;++i){complexInput[i]=std::complex<double>(inputSignal[i],0.0);}butterflyTransform(complexInput,false);returncomplexInput;}std::vector<std::complex<double>>computeInverseFft(conststd::vector<std::complex<double>>&inputSpectrum){std::vector<std::complex<double>>result=inputSpectrum;butterflyTransform(result,true);returnresult;}};intmain(){try{FftCalculatorfftCalc;std::vector<double>testSignal={1.0,2.0,3.0,4.0,0.0,0.0,0.0,0.0};autofftResult=fftCalc.computeFft(testSignal);autoinverseResult=fftCalc.computeInverseFft(fftResult);for(size_ti=0;i<fftResult.size();++i){std::cout<<\"FFT[\"<<i<<\"]=\"<<fftResult[i]<<\",Inverse[\"<<i<<\"]=\"<<inverseResult[i]<<std::endl;}std::cout<<\"thelengthoftestSignalis\"<<std::endl;std::cout<<testSignal.size()<<std::endl;}catch(conststd::exception&e){std::cerr<<\"Error:\"<<e.what()<<std::endl;return1;}return0;}",
         "expected_file_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/agent_test/fix_error.cpp"
     },
-
     "instruction_template": "Open ${filename} in VS Code, understand the code, and fix every error (naming, spelling, namespaces, etc.) until there are no error diagnostics",
-
     "evaluation_setup": {
         "scripts": [
-            { "role": "hook",    "path": "hooker.js" },
-            { "role": "handler", "path": "handler.py" }
+            {
+                "role": "hook",
+                "path": "hooker.js"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
@@ -45,13 +47,15 @@
     "mcp_servers": [
         {
             "command": "mcp-proxy",
-            "args": ["http://127.0.0.1:6010/sse"]
+            "args": [
+                "http://127.0.0.1:6010/sse"
+            ]
         }
     ],
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/user_data"
         },
         {
             "from": "tests/context_data/vscode/extensions",

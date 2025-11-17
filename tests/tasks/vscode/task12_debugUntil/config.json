@@ -2,17 +2,15 @@
     "task_id": "12",
     "task_name": "debug_until",
     "description": "Open a specific directory in VS Code, configure C++ debugging, set breakpoints, and continue execution until the desired state is reached",
-
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
-
     "task_parameters": {
         "directory": "/workspace/.mcpworld/vscode/C-Plus-Plus/agent_test",
         "file_name": "debug_until.cpp",
@@ -35,13 +33,17 @@
         },
         "expected_program": "/workspace/.mcpworld/vscode/C-Plus-Plus/agent_test/debug_until"
     },
-
     "instruction_template": "Switch VS Code to the ${directory} workspace, configure debugging for ${file_name}, add breakpoints ${breakpoints}, start debugging, and continue until ${state}",
-
     "evaluation_setup": {
         "scripts": [
-            { "role": "hook",    "path": "hooker.js" },
-            { "role": "handler", "path": "handler.py" }
+            {
+                "role": "hook",
+                "path": "hooker.js"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
@@ -92,13 +94,15 @@
     "mcp_servers": [
         {
             "command": "mcp-proxy",
-            "args": ["http://127.0.0.1:6010/sse"]
+            "args": [
+                "http://127.0.0.1:6010/sse"
+            ]
         }
     ],
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/user_data"
         },
         {
             "from": "tests/context_data/vscode/extensions",

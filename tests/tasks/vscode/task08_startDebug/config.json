@@ -2,17 +2,15 @@
     "task_id": "08",
     "task_name": "start_cpp_debug",
     "description": "Open a C++ file in the current workspace, configure specific breakpoints, and launch the debug session",
-
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
         "args": [
             "--no-sandbox",
-            "--user-data-dir=/workspace/.mcpworld/vscode/vscode_user_data_dir",
+            "--user-data-dir=/workspace/.mcpworld/vscode/user_data",
             "/workspace/.mcpworld/vscode/C-Plus-Plus"
         ]
     },
-
     "task_parameters": {
         "file_name": "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort.cpp",
         "breakpoints": {
@@ -24,13 +22,17 @@
         "hit_line": 98,
         "expected_program": "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort"
     },
-
     "instruction_template": "Open ${file_name}, add breakpoints that match ${breakpoints}, and launch the 'c++ debug' configuration so execution stops at the expected line",
-
     "evaluation_setup": {
         "scripts": [
-            { "role": "hook",    "path": "hooker.js" },
-            { "role": "handler", "path": "handler.py" }
+            {
+                "role": "hook",
+                "path": "hooker.js"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
         ],
         "timeout": 120,
         "evaluator_type": "IpcInjector",
@@ -81,13 +83,15 @@
     "mcp_servers": [
         {
             "command": "mcp-proxy",
-            "args": ["http://127.0.0.1:6010/sse"]
+            "args": [
+                "http://127.0.0.1:6010/sse"
+            ]
         }
     ],
     "context_data": [
         {
             "from": "tests/context_data/vscode/user_data",
-            "to": "/workspace/.mcpworld/vscode/vscode_user_data_dir"
+            "to": "/workspace/.mcpworld/vscode/user_data"
         },
         {
             "from": "tests/context_data/vscode/extensions",
