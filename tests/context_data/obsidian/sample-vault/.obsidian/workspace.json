@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Test Note 1.md",
+                "file": "Waddup.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Test Note 1"
+              "title": "Waddup"
             }
           }
         ],
@@ -71,8 +71,7 @@
             "state": {
               "type": "file-explorer",
               "state": {
-                "sortOrder": "alphabetical",
-                "autoReveal": false
+                "sortOrder": "alphabetical"
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -210,13 +209,14 @@
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
-      "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "command-palette:Open command palette": false
     }
   },
   "active": "86f7c52a60d9a06b",
   "lastOpenFiles": [
+    "Test Note 1.md",
+    "Waddup.md",
     "Welcome.md",
-    "Test Note 1.md"
+    "Waddup "
   ]
 }
