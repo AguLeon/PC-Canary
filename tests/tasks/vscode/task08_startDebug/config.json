@@ -22,7 +22,7 @@
         "hit_line": 98,
         "expected_program": "/workspace/.mcpworld/vscode/C-Plus-Plus/sorting/bubble_sort"
     },
-    "instruction_template": "Open ${file_name}, add breakpoints that match ${breakpoints}, and launch the 'c++ debug' configuration so execution stops at the expected line. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Open ${file_name}, add breakpoints that match ${breakpoints}, and launch the 'c++ debug' configuration so execution stops at the expected line. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

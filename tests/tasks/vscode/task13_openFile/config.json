@@ -17,7 +17,7 @@
         "function_name": "recursive_bubble_sort",
         "expected_line": 7
     },
-    "instruction_template": "In the current VS Code workspace, open ${filename} and move the cursor to the ${function_name} definition. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "In the current VS Code workspace, open ${filename} and move the cursor to the ${function_name} definition. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {
