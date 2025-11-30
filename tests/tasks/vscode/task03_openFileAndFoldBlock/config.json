@@ -19,7 +19,7 @@
         "expected_file_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/binary_search.cpp"
     },
 
-    "instruction_template": "Open ${file_name} from the current VS Code workspace and fold every code block in that file. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Open ${file_name} from the current VS Code workspace and fold every code block in that file. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
 
     "evaluation_setup": {
         "scripts": [

@@ -15,7 +15,7 @@
         "file": "get_size_of_linked_list.cpp",
         "expected_file_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/operations_on_datastructures/get_size_of_linked_list.cpp"
     },
-    "instruction_template": "Open ${file} in the current VS Code workspace, delete every comment, and leave the remaining content unchanged. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Open ${file} in the current VS Code workspace, delete every comment, and leave the remaining content unchanged. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

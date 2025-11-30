@@ -17,7 +17,7 @@
         "file1": "/workspace/.mcpworld/vscode/C-Plus-Plus/quick_sort.cpp",
         "file2": "/workspace/.mcpworld/vscode/C-Plus-Plus/quick_sort_3.cpp"
     },
-    "instruction_template": "Use VS Code to open ${file_name1} and ${file_name2}, then launch the built-in Compare feature. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Use VS Code to open ${file_name1} and ${file_name2}, then launch the built-in Compare feature. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

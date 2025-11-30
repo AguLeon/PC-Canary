@@ -33,7 +33,7 @@
         },
         "expected_program": "/workspace/.mcpworld/vscode/C-Plus-Plus/agent_test/debug_until"
     },
-    "instruction_template": "Switch VS Code to the ${directory} workspace, configure debugging for ${file_name}, add breakpoints ${breakpoints}, start debugging, and continue until ${state}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Switch VS Code to the ${directory} workspace, configure debugging for ${file_name}, add breakpoints ${breakpoints}, start debugging, and continue until ${state}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

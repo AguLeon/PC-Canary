@@ -12,7 +12,7 @@
         ]
     },
     "task_parameters": {},
-    "instruction_template": "Within VS Code, enable the Git blame editor decoration setting. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Within VS Code, enable the Git blame editor decoration setting. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {
