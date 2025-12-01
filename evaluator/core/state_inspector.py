@@ -6,9 +6,10 @@ import importlib
 
 class StateInspector(HookManager):
     """
-    基于REST API或app库实现的任务评估器, 负责加载评估脚本, 评估脚本负责和服务器通信等功能
-    
-    本评估方式是没有必要处理各种异步事件的
+    Task evaluator based on REST API or app library implementation.
+    Responsible for loading evaluation scripts that communicate with the server.
+
+    This evaluation method does not need to handle various asynchronous events.
     """
     def __init__(self, app_path: str = None, app_working_cwd: Optional[str] = None,
                  args: List[str] = None, logger: Optional[logging.Logger] = None,
@@ -21,17 +22,17 @@ class StateInspector(HookManager):
     def add_script(self, hooker_path: str, dep_script_list: str) -> None:
         if os.path.exists(hooker_path):
             self.scripts.append((hooker_path, dep_script_list))
-            self.logger.info(f"添加钩子脚本: {hooker_path}")
+            self.logger.info(f"Added hook script: {hooker_path}")
         else:
-            self.logger.error(f"脚本文件不存在: {hooker_path}")
+            self.logger.error(f"Script file does not exist: {hooker_path}")
 
     def load_scripts(self, eval_handler: Callable[[Dict[str, Any], Any], None]) -> bool:
         self.eval_handler = eval_handler
         if not self.scripts:
-            self.logger.warning("没有脚本可加载")
+            self.logger.warning("No scripts to load")
             return False
 
-        # 加载所有脚本
+        # Load all scripts
         for (script_path, dep_script_list) in self.scripts:
             try:
                 dep_script_list.append(script_path)
@@ -41,14 +42,14 @@ class StateInspector(HookManager):
                     script_module = importlib.import_module(module_path)
                     if hasattr(script_module, 'inspector_on_start'):
                         self.inspector_on_start.append(script_module.inspector_on_start)
-                        # 获取app初始状态
+                        # Get app initial state
                         script_module.inspector_on_start()
                     if hasattr(script_module, 'inspector_on_completion'):
                         self.inspector_on_completion.append(script_module.inspector_on_completion)
                 self.loaded_scripts.append((script_path, dep_script_list))
-                self.logger.info(f"加载脚本成功: {script_path}")
+                self.logger.info(f"Script loaded successfully: {script_path}")
             except Exception as e:
-                self.logger.error(f"加载脚本失败 {script_path}: {str(e)}")
+                self.logger.error(f"Failed to load script {script_path}: {str(e)}")
         return len(self.loaded_scripts) > 0
 
     def unload_scripts(self) -> None:
@@ -66,9 +67,9 @@ class StateInspector(HookManager):
         return super().stop_app()
     
     def trigger_evaluate_on_completion(self) -> None:
-        self.logger.info("在任务操作完毕时触发评估")
+        self.logger.info("Triggering evaluation on task completion")
         try:
             for f in self.inspector_on_completion:
                 f(self.eval_handler)
         except Exception as e:
-            self.logger.error(f"在任务结束时评估触发错误: {str(e)}")
+            self.logger.error(f"Error triggering evaluation on task completion: {str(e)}")
