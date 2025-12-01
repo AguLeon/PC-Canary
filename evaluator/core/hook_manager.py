@@ -9,24 +9,24 @@ import subprocess
 
 class HookManager:
     """
-    钩子管理器，负责加载和管理Frida脚本
+    Hook manager responsible for loading and managing Frida scripts
     """
-    
+
     def __init__(self, app_path: str = None, app_working_cwd: Optional[str] = None,
                  args: List[str] = None, logger: Optional[logging.Logger] = None,
                  evaluate_on_completion: bool = False):
         """
-        初始化钩子管理器
-        
+        Initialize hook manager
+
         Args:
-            logger: 日志记录器，如果为None则使用默认记录器
+            logger: Logger instance, uses default if None
         """
-        self.scripts = []  # 脚本路径列表
-        self.app_path = app_path  # 应用路径
+        self.scripts = []  # Script path list
+        self.app_path = app_path  # Application path
         self.app_working_cwd = app_working_cwd if app_working_cwd else os.getcwd()
-        self.frida_session = None  # Frida会话
-        self.loaded_scripts = []  # 已加载的脚本对象
-        self.message_handler = None  # 消息处理函数
+        self.frida_session = None  # Frida session
+        self.loaded_scripts = []  # Loaded script objects
+        self.message_handler = None  # Message handler function
         self.logger = logger
         self.args = args
         self.app_process = None
@@ -36,39 +36,39 @@ class HookManager:
         
     def add_script(self, hooker_path: str, dep_script_list: list) -> None:
         """
-        添加钩子脚本
-        
+        Add hook script
+
         Args:
-            task_id: 脚本路径
+            task_id: Script path
         """
         if os.path.exists(hooker_path):
             self.scripts.append((hooker_path, dep_script_list))
-            self.logger.info(f"添加钩子脚本: {hooker_path}")
+            self.logger.info(f"Added hook script: {hooker_path}")
         else:
-            self.logger.error(f"脚本文件不存在: {hooker_path}")
+            self.logger.error(f"Script file does not exist: {hooker_path}")
     
     
     def load_scripts(self, eval_handler: Callable[[Dict[str, Any], Any], None]) -> bool:
         """
-        加载脚本到目标进程
-        
+        Load scripts into target process
+
         Args:
-            eval_handler: 任务的事件处理器
-            
+            eval_handler: Task event handler
+
         Returns:
-            bool: 加载是否成功
+            bool: Whether loading was successful
         """
         if not self.scripts:
-            self.logger.warning("没有脚本可加载")
+            self.logger.warning("No scripts to load")
             return False
-        
+
         self.eval_handler = eval_handler
         try:
-            # 连接到目标进程
-            self.logger.info(f"连接到进程: {self.app_process.pid}")
+            # Connect to target process
+            self.logger.info(f"Connecting to process: {self.app_process.pid}")
             self.frida_session = frida.attach(self.app_process.pid)
-            
-            # 加载所有脚本
+
+            # Load all scripts
             for (script_path, dep_script_list) in self.scripts:
                 try:
                     scripts = []
@@ -78,28 +78,28 @@ class HookManager:
                         with open(script, 'r', encoding="UTF8") as f:
                             scripts.append(f.read())
                     script_content = "\n".join(scripts)
-                    
+
                     script = self.frida_session.create_script(script_content)
                     script.on('message', eval_handler)
                     script.load()
-                    
+
                     self.loaded_scripts.append(script)
-                    self.logger.info(f"加载脚本成功: {script_path}")
+                    self.logger.info(f"Script loaded successfully: {script_path}")
                 except Exception as e:
-                    self.logger.error(f"加载脚本失败 {script_path}: {str(e)}")
-            
+                    self.logger.error(f"Failed to load script {script_path}: {str(e)}")
+
             return len(self.loaded_scripts) > 0
-        
+
         except frida.ProcessNotFoundError:
-            self.logger.error(f"未找到进程: {self.app_process.pid}")
+            self.logger.error(f"Process not found: {self.app_process.pid}")
             return False
         except Exception as e:
-            self.logger.error(f"连接到进程失败: {str(e)}")
+            self.logger.error(f"Failed to connect to process: {str(e)}")
             return False
     
     def unload_scripts(self) -> None:
         """
-        卸载所有脚本
+        Unload all scripts
         """
         try:
             if self.evaluate_on_completion:
@@ -107,30 +107,38 @@ class HookManager:
 
             for script in self.loaded_scripts:
                 script.unload()
-            
+
             self.loaded_scripts = []
-            
+
             if self.frida_session:
                 self.frida_session.detach()
                 self.frida_session = None
-            
-            self.logger.info("脚本卸载完成")
+
+            self.logger.info("Scripts unloaded successfully")
         except Exception as e:
-            self.logger.error(f"卸载脚本失败: {str(e)}")
+            self.logger.error(f"Failed to unload scripts: {str(e)}")
             
     def start_app(self) -> bool:
-        #  如果提供了应用路径，则启动应用
-        if self.app_path and os.path.exists(self.app_path):
-            self.app_path = self.app_path
+        # If application path is provided, start the application
+        if self.app_path:
+            # Check if app_path exists as a file or is a command in PATH
+            import shutil
+            resolved_path = self.app_path if os.path.exists(self.app_path) else shutil.which(self.app_path)
+
+            if not resolved_path:
+                self.logger.error(f"Application path does not exist: {self.app_path}")
+                self.app_started = True
+                return True
+
             if self.args is None:
                 self.args = []
-        
-            # 构建完整的命令行
-            cmd = [self.app_path] + self.args
-        
+
+            # Build complete command line
+            cmd = [resolved_path] + self.args
+
             try:
-                # 启动应用进程
-                self.logger.info(f"正在启动应用: {self.app_path}")
+                # Start application process
+                self.logger.info(f"Starting application: {self.app_path}")
                 self.app_process = subprocess.Popen(
                     cmd,
                     cwd=self.app_working_cwd,
@@ -138,76 +146,74 @@ class HookManager:
                     stderr=subprocess.PIPE
                 )
 
-                self.logger.info(f"应用启动成功，进程ID: {self.app_process.pid}")
+                self.logger.info(f"Application started successfully, process ID: {self.app_process.pid}")
 
-                # 等待应用窗口加载完成
-                self.logger.info("等待应用窗口加载完成...")
+                # Wait for application window to load
+                self.logger.info("Waiting for application window to load...")
 
-                # Linux系统：使用xwininfo命令检测窗口变化
+                # Linux system: Use xwininfo command to detect window changes
                 try:
-                    # 获取启动前窗口列表
-                    windows_before = subprocess.run(["xwininfo", "-root", "-tree"], 
-                                                stdout=subprocess.PIPE, 
+                    # Get window list before startup
+                    windows_before = subprocess.run(["xwininfo", "-root", "-tree"],
+                                                stdout=subprocess.PIPE,
                                                 text=True).stdout.count('\n')
-                    self.logger.info(f"启动前窗口行数: {windows_before}")
+                    self.logger.info(f"Window count before startup: {windows_before}")
 
-                    # 等待新窗口出现
-                    max_wait_time = 30  # 最大等待30秒
+                    # Wait for new window to appear
+                    max_wait_time = 30  # Maximum wait 30 seconds
                     start_wait = time.time()
                     window_detected = False
 
                     while time.time() - start_wait < max_wait_time:
-                        windows_current = subprocess.run(["xwininfo", "-root", "-tree"], 
-                                                    stdout=subprocess.PIPE, 
+                        windows_current = subprocess.run(["xwininfo", "-root", "-tree"],
+                                                    stdout=subprocess.PIPE,
                                                     text=True).stdout.count('\n')
                         if windows_current > windows_before:
                             window_detected = True
-                            self.logger.info(f"检测到新窗口，当前窗口行数: {windows_current}")
-                            # 额外等待2秒确保窗口内容加载完成
+                            self.logger.info(f"New window detected, current window count: {windows_current}")
+                            # Wait additional 2 seconds to ensure window content is loaded
                             time.sleep(2)
                             break
                         time.sleep(0.5)
 
                     if not window_detected:
-                        self.logger.warning("未检测到新窗口出现，使用默认等待时间")
+                        self.logger.warning("No new window detected, using default wait time")
                         time.sleep(5)
                 except Exception as window_error:
-                    self.logger.warning(f"窗口检测出错: {str(window_error)}，使用默认等待时间")
+                    self.logger.warning(f"Window detection error: {str(window_error)}, using default wait time")
                     time.sleep(5)
             except Exception as e:
-                self.logger.error(f"应用启动失败: {str(e)}")
-        else:
-            self.logger.error(f"应用路径不存在: {self.app_path}")
+                self.logger.error(f"Failed to start application: {str(e)}")
 
         self.app_started = True
         return True
     
     def stop_app(self) -> None:
-        # 停止应用进程
+        # Stop application process
         if hasattr(self, 'app_process') and self.app_process:
             try:
-                self.logger.info(f"尝试优雅地终止应用进程 (PID: {self.app_process.pid})")
+                self.logger.info(f"Attempting to gracefully terminate application process (PID: {self.app_process.pid})")
 
-                # 发送SIGTERM信号，通知应用准备关闭
+                # Send SIGTERM signal to notify application to prepare for shutdown
                 self.app_process.send_signal(signal.SIGTERM)
-                self.logger.info("已发送SIGTERM信号，等待应用响应...")
+                self.logger.info("Sent SIGTERM signal, waiting for application response...")
 
-                # 等待应用自行关闭
+                # Wait for application to close on its own
                 try:
-                    self.app_process.wait(timeout=10)  # 等待10秒
-                    self.logger.info("应用进程已自行关闭")
+                    self.app_process.wait(timeout=10)  # Wait 10 seconds
+                    self.logger.info("Application process closed gracefully")
                 except subprocess.TimeoutExpired:
-                    self.logger.warning("应用未在预期时间内关闭，尝试使用terminate()")
+                    self.logger.warning("Application did not close within expected time, trying terminate()")
                     self.app_process.terminate()
                     try:
                         self.app_process.wait(timeout=5)
-                        self.logger.info("应用进程已通过terminate()正常终止")
+                        self.logger.info("Application process terminated successfully via terminate()")
                     except subprocess.TimeoutExpired:
-                        self.logger.warning("应用未能通过terminate()关闭，尝试使用kill()")
+                        self.logger.warning("Application did not close via terminate(), trying kill()")
                         self.app_process.kill()
-                        self.logger.info("应用进程已通过kill()强制终止")
+                        self.logger.info("Application process forcibly killed via kill()")
             except Exception as e:
-                self.logger.error(f"终止应用进程时出错: {str(e)}")
+                self.logger.error(f"Error while terminating application process: {str(e)}")
 
     def trigger_evaluate_on_completion(self):
         self.eval_handler({
