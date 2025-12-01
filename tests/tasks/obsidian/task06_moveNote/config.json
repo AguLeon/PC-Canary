@@ -2,40 +2,41 @@
     "task_id": "06",
     "task_name": "move_note",
     "description": "Move a note into the Archive folder",
-
     "application_info": {
         "name": "obsidian",
         "executable_path": "/usr/local/bin/obsidian",
-        "args": ["obsidian://open?vault=vault"],
+        "args": [
+            "obsidian://open?vault=vault"
+        ],
         "cwd": null
     },
-
     "task_parameters": {
         "source_note": "Ideas.md",
         "target_relative_path": "Archive/Ideas.md",
         "vault_path": "/workspace/.mcpworld/obsidian/vault",
         "content_snippet": "# Ideas"
     },
-
     "instruction_template": "Move the note '${source_note}' at /workspace/.mcpworld/obsidian/vault into the Archive folder so that it exists at '${target_relative_path}'. Do not duplicate the file—perform an actual move.",
-
     "evaluation_setup": {
         "scripts": [
-            { "role": "hook", "path": "handler.py" },
-            { "role": "handler", "path": "handler.py" }
+            {
+                "role": "hook",
+                "path": "handler.py"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
         ],
-        "timeout": 120,
+        "timeout": 600,
         "evaluator_type": "StateInspector",
         "evaluate_on_completion": true
     },
-
     "total_key_steps": 1,
-
     "preconditions": {
         "obsidian_running": true,
         "vault_initialized": true
     },
-
     "events": {
         "note_moved": {
             "description": "The note is present only in the destination folder",
@@ -44,11 +45,12 @@
             "key_step_name": "Note moved"
         }
     },
-
     "mcp_servers": [
         {
             "command": "uvx",
-            "args": ["mcp-obsidian"],
+            "args": [
+                "mcp-obsidian"
+            ],
             "env": {
                 "OBSIDIAN_API_KEY": "1234",
                 "OBSIDIAN_HOST": "http://127.0.0.1",
@@ -56,7 +58,6 @@
             }
         }
     ],
-
     "context_data": [
         {
             "from": "tests/context_data/obsidian/sample-vault",
