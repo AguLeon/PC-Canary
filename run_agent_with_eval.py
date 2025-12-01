@@ -116,8 +116,8 @@ def main():
                         help="Maximum number of execution steps (default: 10)")
     parser.add_argument("--log_dir", type=str, default="logs",
                         help="Directory for logs (default: logs)")
-    parser.add_argument("--timeout", type=int, default=300,
-                        help="Timeout in seconds (default: 300)")
+    parser.add_argument("--timeout", type=int, default=500,
+                        help="Timeout in seconds (default: 500)")
 
     args = parser.parse_args()
 
