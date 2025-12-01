@@ -1,0 +1,66 @@
+{
+    "task_id": "07",
+    "task_name": "extend_agenda",
+    "description": "Append an action-item block to the weekly agenda after inspecting the existing content",
+
+    "application_info": {
+        "name": "obsidian",
+        "executable_path": "/usr/local/bin/obsidian",
+        "args": ["obsidian://open?vault=vault"],
+        "cwd": null
+    },
+
+    "task_parameters": {
+        "note_relative_path": "Meetings/Agenda.md",
+        "vault_path": "/workspace/.mcpworld/obsidian/vault",
+        "append_text": "\n## Action Items\n- Owner: Alice – Prepare KPI deck\n- Owner: Bob – Gather blocker list\n- Owner: Charlie – Draft sprint goals",
+        "required_heading": "## Agenda"
+    },
+
+    "instruction_template": "Open '${note_relative_path}' inside the Obsidian vault at /workspace/.mcpworld/obsidian/vault. First review the existing agenda section, then append the action-item block exactly as provided. Do not remove any existing content; simply add the block to the end of the file.",
+
+    "evaluation_setup": {
+        "scripts": [
+            { "role": "hook", "path": "handler.py" },
+            { "role": "handler", "path": "handler.py" }
+        ],
+        "timeout": 150,
+        "evaluator_type": "StateInspector",
+        "evaluate_on_completion": true
+    },
+
+    "total_key_steps": 1,
+
+    "preconditions": {
+        "obsidian_running": true,
+        "vault_initialized": true
+    },
+
+    "events": {
+        "agenda_extended": {
+            "description": "Action-item block appended without disturbing the agenda section",
+            "is_key_step": true,
+            "key_step_index": 1,
+            "key_step_name": "Agenda extended"
+        }
+    },
+
+    "mcp_servers": [
+        {
+            "command": "uvx",
+            "args": ["mcp-obsidian"],
+            "env": {
+                "OBSIDIAN_API_KEY": "1234",
+                "OBSIDIAN_HOST": "http://127.0.0.1",
+                "OBSIDIAN_PORT": "27123"
+            }
+        }
+    ],
+
+    "context_data": [
+        {
+            "from": "tests/context_data/obsidian/sample-vault",
+            "to": "/workspace/.mcpworld/obsidian/vault"
+        }
+    ]
+}

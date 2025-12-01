@@ -1,0 +1,67 @@
+{
+    "task_id": "09",
+    "task_name": "create_linked_note",
+    "description": "Create a research note that links back to the Ideas note",
+
+    "application_info": {
+        "name": "obsidian",
+        "executable_path": "/usr/local/bin/obsidian",
+        "args": ["obsidian://open?vault=vault"],
+        "cwd": null
+    },
+
+    "task_parameters": {
+        "note_relative_path": "Research/AutomationIdeas.md",
+        "vault_path": "/workspace/.mcpworld/obsidian/vault",
+        "note_title": "# Automation Ideas",
+        "link_target": "[[Ideas]]",
+        "summary_text": "These are the automation concepts worth exploring."
+    },
+
+    "instruction_template": "Confirm that 'Ideas.md' exists, then create a new note at '${note_relative_path}' containing the title '${note_title}', the summary sentence, and a wiki-link to ${link_target}. Make sure the link syntax is correct so Obsidian registers the backlink.",
+
+    "evaluation_setup": {
+        "scripts": [
+            { "role": "hook", "path": "handler.py" },
+            { "role": "handler", "path": "handler.py" }
+        ],
+        "timeout": 150,
+        "evaluator_type": "StateInspector",
+        "evaluate_on_completion": true
+    },
+
+    "total_key_steps": 1,
+
+    "preconditions": {
+        "obsidian_running": true,
+        "vault_initialized": true
+    },
+
+    "events": {
+        "linked_note_created": {
+            "description": "Research note created with backlink to Ideas",
+            "is_key_step": true,
+            "key_step_index": 1,
+            "key_step_name": "Linked note created"
+        }
+    },
+
+    "mcp_servers": [
+        {
+            "command": "uvx",
+            "args": ["mcp-obsidian"],
+            "env": {
+                "OBSIDIAN_API_KEY": "1234",
+                "OBSIDIAN_HOST": "http://127.0.0.1",
+                "OBSIDIAN_PORT": "27123"
+            }
+        }
+    ],
+
+    "context_data": [
+        {
+            "from": "tests/context_data/obsidian/sample-vault",
+            "to": "/workspace/.mcpworld/obsidian/vault"
+        }
+    ]
+}

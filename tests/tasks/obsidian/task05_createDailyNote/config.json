@@ -1,0 +1,65 @@
+{
+    "task_id": "05",
+    "task_name": "create_daily_note",
+    "description": "Create a new daily note with a specific template",
+
+    "application_info": {
+        "name": "obsidian",
+        "executable_path": "/usr/local/bin/obsidian",
+        "args": ["obsidian://open?vault=vault"],
+        "cwd": null
+    },
+
+    "task_parameters": {
+        "note_relative_path": "Daily/Daily-2025-01-01.md",
+        "vault_path": "/workspace/.mcpworld/obsidian/vault",
+        "template_text": "# Daily Log\n- [ ] Plan the day\n- [ ] Review notes\n- [ ] Capture wins"
+    },
+
+    "instruction_template": "Create a new note at '${note_relative_path}' inside /workspace/.mcpworld/obsidian/vault containing exactly the provided template text. If the file already exists, replace its contents with the template.",
+
+    "evaluation_setup": {
+        "scripts": [
+            { "role": "hook", "path": "handler.py" },
+            { "role": "handler", "path": "handler.py" }
+        ],
+        "timeout": 120,
+        "evaluator_type": "StateInspector",
+        "evaluate_on_completion": true
+    },
+
+    "total_key_steps": 1,
+
+    "preconditions": {
+        "obsidian_running": true,
+        "vault_initialized": true
+    },
+
+    "events": {
+        "daily_note_created": {
+            "description": "Daily note created with template content",
+            "is_key_step": true,
+            "key_step_index": 1,
+            "key_step_name": "Daily note created"
+        }
+    },
+
+    "mcp_servers": [
+        {
+            "command": "uvx",
+            "args": ["mcp-obsidian"],
+            "env": {
+                "OBSIDIAN_API_KEY": "1234",
+                "OBSIDIAN_HOST": "http://127.0.0.1",
+                "OBSIDIAN_PORT": "27123"
+            }
+        }
+    ],
+
+    "context_data": [
+        {
+            "from": "tests/context_data/obsidian/sample-vault",
+            "to": "/workspace/.mcpworld/obsidian/vault"
+        }
+    ]
+}
