@@ -42,6 +42,9 @@ def signal_handler(sig, frame, evaluator=None):
 
     if evaluator and evaluator.is_running:
         print("Stopping evaluator...")
+        evaluator.set_stop_context(
+            reason="Execution interrupted by user (SIGINT)", status="stopped"
+        )
         evaluator.stop()
         evaluator.stop_app()
     sys.exit(0)
@@ -290,6 +293,10 @@ def main():
             # Check for timeout
             if time.time() - start_time > timeout_seconds:
                 print(f"\nEvaluation timed out ({timeout_seconds} seconds)...")
+                evaluator.set_stop_context(
+                    reason=f"Evaluation timed out after {timeout_seconds} seconds",
+                    status="timeout",
+                )
                 evaluator.stop()
                 time.sleep(10)
                 break

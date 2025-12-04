@@ -93,6 +93,8 @@ class BaseEvaluator:
             Callable[[CallbackEventData, "BaseEvaluator"], None]
         ] = []
         self._final_callback_triggered = False  # Internal flag
+        self._pending_stop_reason: Optional[str] = None
+        self._pending_stop_status: str = "stopped"
         self.message_handler: Optional[
             Callable[[Dict, Any], Optional[List[Dict[str, Any]]]]
         ] = None  # Expect list of dicts
@@ -543,7 +545,14 @@ class BaseEvaluator:
             self.logger.error(f"Evaluator failed to start: {str(e)}")
             return False
 
-    def stop(self) -> None:
+    def set_stop_context(self, *, reason: str, status: str = "stopped") -> None:
+        """
+        Provide additional context for why stop() is being invoked.
+        """
+        self._pending_stop_reason = reason
+        self._pending_stop_status = status
+
+    def stop(self, *, reason: Optional[str] = None, status: Optional[str] = None) -> None:
         """
         Stop the evaluation.
         """
@@ -559,13 +568,22 @@ class BaseEvaluator:
 
             # If the final callback (success/failure) has not been triggered, record TASK_END event
             if not self._final_callback_triggered:
-                stop_message = "Evaluator stopped externally or timed out before handler completion"
+                stop_message = (
+                    reason
+                    or self._pending_stop_reason
+                    or "Evaluator stopped externally before handler completion"
+                )
+                stop_status = status or self._pending_stop_status or "stopped"
                 self.logger.warning(stop_message)
                 self.record_event(
-                    AgentEvent.TASK_END, {"status": "stopped", "reason": stop_message}
+                    AgentEvent.TASK_END,
+                    {"status": stop_status, "reason": stop_message},
                 )
-                # Optionally trigger an "evaluator_stopped" callback for external logic
-                # self._trigger_completion_callbacks(CallbackEventData("evaluator_stopped", stop_message))
+            # Always reset stored context after stopping
+            self._pending_stop_reason = None
+            self._pending_stop_status = "stopped"
+            # Optionally trigger an "evaluator_stopped" callback for external logic
+            # self._trigger_completion_callbacks(CallbackEventData("evaluator_stopped", stop_message))
 
             # End the session and compute final metrics
             self.result_collector.end_session(self.task_id)

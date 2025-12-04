@@ -148,6 +148,10 @@ def run_mock_agent_demo(app_path, log_dir="logs", timeout=300):
             # 检查是否超时
             if time.time() - start_time > timeout:
                 print(f"\n演示超时 ({timeout}秒)")
+                evaluator.set_stop_context(
+                    reason=f"Execution timed out after {timeout} seconds",
+                    status="timeout",
+                )
                 running_flag['running'] = False
                 break
                 
@@ -164,6 +168,9 @@ def run_mock_agent_demo(app_path, log_dir="logs", timeout=300):
         running_flag['running'] = False
         if evaluator and evaluator.is_running:
             print("正在停止评估器...")
+            evaluator.set_stop_context(
+                reason="Execution interrupted by user (SIGINT)", status="stopped"
+            )
             evaluator.stop()
         sys.exit(0)
         
@@ -225,6 +232,10 @@ def run_mock_agent_demo(app_path, log_dir="logs", timeout=300):
             # 检查超时
             if time.time() - start_time > timeout:
                 print(f"\n演示超时 ({timeout}秒)")
+                evaluator.set_stop_context(
+                    reason=f"Execution timed out after {timeout} seconds",
+                    status="timeout",
+                )
                 break
         
         # 等待评估器完成
