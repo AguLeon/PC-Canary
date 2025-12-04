@@ -1,33 +1,19 @@
+const SETTINGS_FILE_PATH = "/workspace/.mcpworld/vscode/.vscode/settings.json";
+
 /**
- * Reads the .vscode/settings.json file from the current workspace and returns its contents as a JSON object.
- * Returns an empty object if the file does not exist or is invalid.
- * @returns {Promise<object>} The JSON contents of settings.json or an empty object
+ * Reads the sandbox-wide settings.json file and returns its JSON contents.
+ * Returns an empty object if the file does not exist or fails to parse.
  */
 async function readWorkspaceSettings() {
     try {
-        // Get the workspace folders
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders || workspaceFolders.length === 0) {
-            return {};
-        }
-        
-        // Use the first workspace folder (multi-root workspaces would need additional handling)
-        const workspacePath = workspaceFolders[0].uri;
-        // vscode.window.showInformationMessage(workspacePath);
-        const settingsFileUri = vscode.Uri.joinPath(workspacePath, '.vscode', 'settings.json');
-
-        // Read the file
+        const settingsFileUri = vscode.Uri.file(SETTINGS_FILE_PATH);
         const fileContent = await vscode.workspace.fs.readFile(settingsFileUri);
-        const fileContentString = Buffer.from(fileContent).toString('utf8');
-
-        // Parse JSON
+        const fileContentString = Buffer.from(fileContent).toString("utf8");
         return JSON.parse(fileContentString);
     } catch (error) {
-        // Return empty object if file doesn't exist or is invalid
-        if (error instanceof vscode.FileSystemError && error.code === 'FileNotFound') {
+        if (error instanceof vscode.FileSystemError && error.code === "FileNotFound") {
             return {};
         }
-        // Handle JSON parse errors or other issues
         return {};
     }
 }
