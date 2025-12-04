@@ -8,10 +8,10 @@ origin_file_content = None
 def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, Any]) -> Optional[List[Dict[str, Any]]]:    
     global origin_file_content
     event_type = message.get('event_type')
-    expected_file_name = task_parameter.get("expected_file_path", "/workspace/.mcpworld/vscode/C-Plus-Plus/.vscode/settings.json")
+    expected_file_name = task_parameter.get("expected_file_path", "/workspace/.mcpworld/vscode/.vscode/settings.json")
     logger.info(message)
     if event_type == "read_origin_content":
-        origin_file_content = message.get('data')
+        origin_file_content = message.get('data') or {}
     elif event_type == "evaluate_on_completion":
         file_content = message.get('data')
         expected_font_size = task_parameter.get("font_size", 16)

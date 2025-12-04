@@ -15,7 +15,7 @@
         "dir": "/workspace/.mcpworld/vscode/C-Plus-Plus/data_structures",
         "cmd": "tree"
     },
-    "instruction_template": "Open a terminal in the current VS Code workspace, change into ${dir}, and run ${cmd}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "In VS Code’s built-in terminal run: cd ${dir} && ${cmd}. Stay within /workspace/.mcpworld/vscode.",
     "evaluation_setup": {
         "scripts": [
             {

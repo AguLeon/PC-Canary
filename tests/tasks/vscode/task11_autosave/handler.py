@@ -7,7 +7,7 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     event_type = message.get('event_type')
     logger.info(f"{message}")
     if event_type == "evaluate_on_completion":
-        config = message.get('config')
+        config = message.get('config') or {}
         expected_save_mode = task_parameter.get("autoSave", task_parameter.get("mode", 'afterDelay'))
         expected_save_delay = task_parameter.get("autoSaveDelay", task_parameter.get("delay", 500))
         if config.get("autoSave") == expected_save_mode and expected_save_delay == config.get("autoSaveDelay"):

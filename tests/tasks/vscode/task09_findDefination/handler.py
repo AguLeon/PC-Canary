@@ -10,8 +10,8 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     expected_line_end = task_parameter.get("expected_line_end", 248)
     expected_file_name = task_parameter.get("expected_file", "/workspace/.mcpworld/vscode/C-Plus-Plus/ciphers/uint256_t.hpp")
     if event_type == "evaluate_on_completion":
-        breakpoints_info = message.get('breakpoints')
-        if any([i['file'] == expected_file_name and i['line'] >= expected_line_begin and i['line'] <= expected_line_end for i in breakpoints_info]):
+        breakpoints_info = message.get('breakpoints') or []
+        if any(i.get('file') == expected_file_name and expected_line_begin <= i.get('line', -1) <= expected_line_end for i in breakpoints_info):
             return [
                 {"status": "key_step", "index": 2},
                 {"status": "success", "reason": "Breakpoint set on the expected return statement"}

@@ -7,7 +7,7 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     event_type = message.get('event_type')
     logger.info(message)
     if event_type == "evaluate_on_completion":
-        extensions = message.get('extensions')
+        extensions = message.get('extensions') or []
         plugin_name = task_parameter.get("plugin_name", 'Even Better TOML')
         if plugin_name in extensions:
             return [

@@ -13,9 +13,9 @@
     },
     "task_parameters": {
         "font_size": 16,
-        "expected_file_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/.vscode/settings.json"
+        "expected_file_path": "/workspace/.mcpworld/vscode/.vscode/settings.json"
     },
-    "instruction_template": "Inside the sandboxed VS Code workspace (under /workspace/.mcpworld/vscode), open or create the workspace settings file, set the font size to ${font_size}, and save the file. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Inside the sandboxed VS Code environment (under /workspace/.mcpworld/vscode), open or create /workspace/.mcpworld/vscode/.vscode/settings.json, set the font size to ${font_size}, and save the file. Only work inside /workspace/.mcpworld/vscode and do not touch other directories.",
     "evaluation_setup": {
         "scripts": [
             {
