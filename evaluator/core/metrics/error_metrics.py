@@ -24,7 +24,7 @@ class ErrorCounterMetric(BaseMetric):
             'details': error_details
         })
         self.total_error_count += 1
-        self.logger.warning(f"记录到错误 - 来源: {source}, 详情: {error_details}")
+        self.logger.warning(f"Recorded error - Source: {source}, Details: {error_details}")
 
     def process_event(self, event_type: AgentEvent, data: Dict[str, Any]) -> None:
         super().process_event(event_type, data)
