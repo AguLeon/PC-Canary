@@ -1,0 +1,80 @@
+{
+    "task_id": "12",
+    "task_name": "find_information",
+    "description": "Open Firefox, search for the capital of Chile, and append that information to Ideas.md",
+    "application_info": {
+        "name": "obsidian",
+        "executable_path": "/usr/local/bin/obsidian",
+        "args": [
+            "obsidian://open?vault=vault"
+        ],
+        "cwd": null
+    },
+    "secondary_application_info": {
+        "name": "firefox",
+        "executable_path": "/usr/bin/firefox",
+        "args": [],
+        "cwd": null
+    },
+    "task_parameters": {
+        "note_relative_path": "Ideas.md",
+        "vault_path": "/workspace/.mcpworld/obsidian/vault",
+        "expected_capital": "Santiago",
+        "search_query": "capital of Chile"
+    },
+    "instruction_template": "Open Firefox browser and search for the `capital of Chile` and press enter. Take a screenshot and see the answer, append that information to '${note_relative_path}' in Obsidian. Make sure to include the name of the capital city in the note. The obsidian vault path is '${vault_path}'.",
+    "evaluation_setup": {
+        "scripts": [
+            {
+                "role": "hook",
+                "path": "handler.py"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
+        ],
+        "timeout": 600,
+        "evaluator_type": "StateInspector",
+        "evaluate_on_completion": true
+    },
+    "total_key_steps": 2,
+    "preconditions": {
+        "obsidian_running": true,
+        "vault_initialized": true,
+        "firefox_available": true
+    },
+    "events": {
+        "browser_search_performed": {
+            "description": "Firefox was opened and search for capital of Chile was performed",
+            "is_key_step": true,
+            "key_step_index": 1,
+            "key_step_name": "Browser search performed"
+        },
+        "capital_appended": {
+            "description": "Capital of Chile (Santiago) is appended to Ideas.md",
+            "is_key_step": true,
+            "key_step_index": 2,
+            "key_step_name": "Capital appended to note"
+        }
+    },
+    "mcp_servers": [
+        {
+            "command": "uvx",
+            "args": [
+                "mcp-obsidian"
+            ],
+            "env": {
+                "OBSIDIAN_API_KEY": "1234",
+                "OBSIDIAN_HOST": "http://127.0.0.1",
+                "OBSIDIAN_PORT": "27123"
+            }
+        }
+    ],
+    "context_data": [
+        {
+            "from": "tests/context_data/obsidian/sample-vault",
+            "to": "/workspace/.mcpworld/obsidian/vault"
+        }
+    ]
+}
