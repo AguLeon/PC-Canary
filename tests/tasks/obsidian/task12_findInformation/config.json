@@ -22,7 +22,7 @@
         "expected_capital": "Santiago",
         "search_query": "capital of Chile"
     },
-    "instruction_template": "Open Firefox browser and search for the `capital of Chile` and press enter. Take a screenshot and see the answer, append that information to '${note_relative_path}' in Obsidian. Make sure to include the name of the capital city in the note. The obsidian vault path is '${vault_path}'.",
+    "instruction_template": "Open Firefox browser and search for the `capital of Chile` and press enter. See the answer and add that information to '${note_relative_path}' note in Obsidian. Make sure to include the name of the capital city in the note. The obsidian vault path is '${vault_path}'.",
     "evaluation_setup": {
         "scripts": [
             {
