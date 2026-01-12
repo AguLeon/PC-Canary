@@ -1,0 +1,72 @@
+{
+    "task_id": "11",
+    "task_name": "put_screenshot",
+    "description": "Take a screenshot of the current screen and add it to MeetingNotes.md",
+    "application_info": {
+        "name": "obsidian",
+        "executable_path": "/usr/local/bin/obsidian",
+        "args": [
+            "obsidian://open?vault=vault"
+        ],
+        "cwd": null
+    },
+    "task_parameters": {
+        "note_relative_path": "MeetingNotes.md",
+        "vault_path": "/workspace/.mcpworld/obsidian/vault",
+        "screenshot_filename": "screenshot.png"
+    },
+    "instruction_template": "The obsidian vault path is '${vault_path}'. Take a screenshot of the current screen and add it to '${note_relative_path}'.  Save the screenshot image in the vault and embed it in the note using Markdown image syntax. You have access to scrot bash utility command and the DISPLAY value is :4",
+    "evaluation_setup": {
+        "scripts": [
+            {
+                "role": "hook",
+                "path": "handler.py"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
+        ],
+        "timeout": 600,
+        "evaluator_type": "StateInspector",
+        "evaluate_on_completion": true
+    },
+    "total_key_steps": 2,
+    "preconditions": {
+        "obsidian_running": true,
+        "vault_initialized": true
+    },
+    "events": {
+        "screenshot_taken": {
+            "description": "Screenshot image file exists in vault",
+            "is_key_step": true,
+            "key_step_index": 1,
+            "key_step_name": "Screenshot taken"
+        },
+        "screenshot_embedded": {
+            "description": "Screenshot is embedded in MeetingNotes.md",
+            "is_key_step": true,
+            "key_step_index": 2,
+            "key_step_name": "Screenshot embedded in note"
+        }
+    },
+    "mcp_servers": [
+        {
+            "command": "uvx",
+            "args": [
+                "mcp-obsidian"
+            ],
+            "env": {
+                "OBSIDIAN_API_KEY": "1234",
+                "OBSIDIAN_HOST": "http://127.0.0.1",
+                "OBSIDIAN_PORT": "27123"
+            }
+        }
+    ],
+    "context_data": [
+        {
+            "from": "tests/context_data/obsidian/sample-vault",
+            "to": "/workspace/.mcpworld/obsidian/vault"
+        }
+    ]
+}

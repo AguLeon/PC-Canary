@@ -16,7 +16,8 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
     expected_hit_line = task_parameter.get("hit_line", 98)
     expected_program = task_parameter.get("expected_program", "/workspace/.mcpworld/vscode/C-Plus-Plus/bubble_sort")
     if event_type == "evaluate_on_completion":
-        breakpoints_info = message.get('breakpoints')
+        breakpoints_snapshot = dict(expected_breakpoints)
+        breakpoints_info = message.get('breakpoints') or []
         current_file = message.get('current_file')
         current_line = message.get('current_line')
         for bp in breakpoints_info:
@@ -24,11 +25,11 @@ def message_handler(message: Dict[str, Any], logger, task_parameter: Dict[str, A
             line = str(bp['line'])
             condition = bp['condition']
             enabled = bp['enabled']
-            if file_name == expected_filename and line in expected_breakpoints:
-                if enabled and condition == expected_breakpoints[line]:
+            if file_name == expected_filename and line in breakpoints_snapshot:
+                if enabled and condition == breakpoints_snapshot[line]:
                     # right settings
-                    expected_breakpoints.pop(line)
-        if len(expected_breakpoints) == 0 and expected_hit_file == current_file and expected_hit_line == current_line:
+                    breakpoints_snapshot.pop(line)
+        if len(breakpoints_snapshot) == 0 and expected_hit_file == current_file and expected_hit_line == current_line:
             return [
                 {"status": "key_step", "index": 6},
                 {"status": "success", "reason": "Breakpoints configured and debug session hit the expected location"}

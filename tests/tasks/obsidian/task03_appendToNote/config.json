@@ -1,0 +1,66 @@
+{
+    "task_id": "03",
+    "task_name": "append_to_note",
+    "description": "Append a summary block to an existing note",
+    "application_info": {
+        "name": "obsidian",
+        "executable_path": "/usr/local/bin/obsidian",
+        "args": [
+            "obsidian://open?vault=vault"
+        ],
+        "cwd": null
+    },
+    "task_parameters": {
+        "note_relative_path": "Projects/ProjectPlan.md",
+        "vault_path": "/workspace/.mcpworld/obsidian/vault",
+        "append_text": "\n## Summary\nProject plan reviewed and updated."
+    },
+    "instruction_template": "Open '${note_relative_path}' inside the Obsidian vault at /workspace/.mcpworld/obsidian/vault and append the text: ${append_text}. Do not remove or rewrite the existing content; only add to the end.",
+    "evaluation_setup": {
+        "scripts": [
+            {
+                "role": "hook",
+                "path": "handler.py"
+            },
+            {
+                "role": "handler",
+                "path": "handler.py"
+            }
+        ],
+        "timeout": 600,
+        "evaluator_type": "StateInspector",
+        "evaluate_on_completion": true
+    },
+    "total_key_steps": 1,
+    "preconditions": {
+        "obsidian_running": true,
+        "vault_initialized": true
+    },
+    "events": {
+        "note_appended": {
+            "description": "The note contains the appended summary text",
+            "is_key_step": true,
+            "key_step_index": 1,
+            "key_step_name": "Summary appended"
+        }
+    },
+    "mcp_servers": [
+        {
+            "command": "uvx",
+            "args": [
+                "mcp-obsidian"
+            ],
+            "env": {
+                "OBSIDIAN_API_KEY": "1234",
+                "OBSIDIAN_HOST": "http://127.0.0.1",
+                "OBSIDIAN_PORT": "27123"
+            }
+        }
+    ],
+    "context_data": [
+        {
+            "from": "tests/context_data/obsidian/sample-vault",
+            "to": "/workspace/.mcpworld/obsidian/vault"
+        }
+    ]
+}

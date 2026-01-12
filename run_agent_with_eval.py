@@ -116,8 +116,8 @@ def main():
                         help="Maximum number of execution steps (default: 10)")
     parser.add_argument("--log_dir", type=str, default="logs",
                         help="Directory for logs (default: logs)")
-    parser.add_argument("--timeout", type=int, default=300,
-                        help="Timeout in seconds (default: 300)")
+    parser.add_argument("--timeout", type=int, default=500,
+                        help="Timeout in seconds (default: 500)")
 
     args = parser.parse_args()
 
@@ -183,6 +183,9 @@ def main():
         print("\n\nExecution interrupted by user...")
         if evaluator and evaluator.is_running:
             print("Stopping evaluator...")
+            evaluator.set_stop_context(
+                reason="Execution interrupted by user (SIGINT)", status="stopped"
+            )
             evaluator.stop()
             evaluator.stop_app()
         sys.exit(0)
@@ -238,6 +241,10 @@ def main():
             # 检查是否超时
             if current_time - start_time > args.timeout:
                 print(f"\n执行超时 ({args.timeout}秒)")
+                evaluator.set_stop_context(
+                    reason=f"Execution timed out after {args.timeout} seconds",
+                    status="timeout",
+                )
                 # Don't call evaluator.stop() here, let finally block handle it
                 break
 
@@ -384,6 +391,11 @@ def main():
 
     except KeyboardInterrupt:
         print("\n[!] 用户中断执行")
+        if evaluator and evaluator.is_running:
+            evaluator.set_stop_context(
+                reason="Execution interrupted by user (KeyboardInterrupt)",
+                status="stopped",
+            )
     except Exception as e:
         print(f"\n[!] 执行错误: {str(e)}")
         import traceback
