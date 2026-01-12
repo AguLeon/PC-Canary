@@ -26,9 +26,8 @@ sys.path.append(PROJECT_ROOT)
 # Global flag to signal loop termination from callback
 evaluation_finished = False
 
+
 # Signal handler
-
-
 def signal_handler(sig, frame, evaluator=None):
     """
     Handle CTRL+C signal
