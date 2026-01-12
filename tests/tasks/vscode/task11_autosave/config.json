@@ -13,9 +13,10 @@
     },
     "task_parameters": {
         "mode": "afterDelay",
-        "delay": 500
+        "delay": 500,
+        "settings_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/.vscode/settings.json"
     },
-    "instruction_template": "Within the current VS Code workspace, set auto save to ${mode} and configure the delay to ${delay}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Within the sandboxed workspace at /workspace/.mcpworld/vscode/C-Plus-Plus, open ${settings_path} and set auto save to ${mode} with a ${delay} ms delay. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

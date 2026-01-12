@@ -14,7 +14,7 @@
     "task_parameters": {
         "commit_message": "fix bugs"
     },
-    "instruction_template": "Commit every pending change in the current VS Code workspace with the commit message ${commit_message}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Commit every pending change in the current VS Code workspace with the commit message ${commit_message}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

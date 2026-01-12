@@ -15,7 +15,7 @@
         "tab_size": 2,
         "expected_file_path": "/workspace/.mcpworld/vscode/C-Plus-Plus/.vscode/settings.json"
     },
-    "instruction_template": "Only change the current VS Code workspace tab size to ${tab_size}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Open ${expected_file_path} for the sandboxed workspace and update the tab size to ${tab_size} without changing anything else. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

@@ -16,7 +16,7 @@
         "commit_message": "temp commit for checkout",
         "origin_branch": "master"
     },
-    "instruction_template": "Switch the current VS Code workspace to branch ${branch_name}. If there are pending changes, commit them with message ${commit_message} before switching (commands need to run inside the workspace directory). Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Switch the current VS Code workspace to branch ${branch_name}. If there are pending changes, commit them with message ${commit_message} before switching (commands need to run inside the workspace directory). Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

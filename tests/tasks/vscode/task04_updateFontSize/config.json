@@ -1,7 +1,7 @@
 {
     "task_id": "04",
     "task_name": "update_font_size",
-    "description": "Update the sandboxed VS Code workspace settings so editor.fontSize is 16 without touching any other directories",
+    "description": "Update the sandboxed VS Code workspace settings at /workspace/.mcpworld/vscode/C-Plus-Plus/.vscode/settings.json so editor.fontSize is 16 without touching any other directories",
     "application_info": {
         "name": "vscode",
         "executable_path": "/workspace/PC-Canary/apps/vscode/scripts/code.sh",
@@ -15,7 +15,7 @@
         "font_size": 16,
         "expected_file_path": "/workspace/.mcpworld/vscode/.vscode/settings.json"
     },
-    "instruction_template": "Inside the sandboxed VS Code environment (under /workspace/.mcpworld/vscode), open or create /workspace/.mcpworld/vscode/.vscode/settings.json, set the font size to ${font_size}, and save the file. Only work inside /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Open ${expected_file_path} (inside /workspace/.mcpworld/vscode/C-Plus-Plus/.vscode/), set the font size to ${font_size}, and save the file. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

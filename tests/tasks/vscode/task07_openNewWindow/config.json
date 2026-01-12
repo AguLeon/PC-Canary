@@ -14,7 +14,7 @@
     "task_parameters": {
         "work_space_dir": "/workspace/.mcpworld/vscode/C-Plus-Plus/data_structures"
     },
-    "instruction_template": "Attach a new VS Code window and open ${work_space_dir} inside it. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Attach a new VS Code window and open ${work_space_dir} inside it. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

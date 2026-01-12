@@ -14,7 +14,7 @@
     "task_parameters": {
         "plugin_name": "Even Better TOML"
     },
-    "instruction_template": "Search within VS Code for the ${plugin_name} extension and install it. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Search within VS Code for the ${plugin_name} extension and install it. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

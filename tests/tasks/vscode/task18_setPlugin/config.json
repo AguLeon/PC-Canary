@@ -16,7 +16,7 @@
         "instruction": "Configure the extension so that highlighting is case-insensitive",
         "value": false
     },
-    "instruction_template": "Install the ${plugin_name} extension in VS Code and ${instruction}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Install the ${plugin_name} extension in VS Code and ${instruction}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

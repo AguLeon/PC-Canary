@@ -18,7 +18,7 @@
         "expected_line_begin": 241,
         "expected_line_end": 248
     },
-    "instruction_template": "Locate the ${operator} operator overload for class ${class_name} in the current workspace and set a breakpoint at its return statement (no debug session needed). Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Locate the ${operator} operator overload for class ${class_name} in the current workspace and set a breakpoint at its return statement (no debug session needed). Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
     "evaluation_setup": {
         "scripts": [
             {

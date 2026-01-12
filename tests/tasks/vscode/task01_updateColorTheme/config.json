@@ -17,7 +17,7 @@
         "theme": "Default Light+"
     },
 
-    "instruction_template": "Change the VS Code color theme to ${theme}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories.",
+    "instruction_template": "Change the VS Code color theme to ${theme}. Only work inside the sandboxed VS Code workspace under /workspace/.mcpworld/vscode and do not touch other directories. The workspace root is `/workspace/.mcpworld/vscode/C-Plus-Plus`.",
 
     "evaluation_setup": {
         "scripts": [
