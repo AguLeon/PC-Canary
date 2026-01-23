@@ -24,6 +24,9 @@ from evaluator.core.metrics.error_metrics import ErrorCounterMetric
 from evaluator.core.metrics.keystep_metrics import KeyStepMetric
 from evaluator.core.metrics.ttft_metrics import TTFTMetric
 from evaluator.core.metrics.cost_metrics import CostPerTurnMetric
+from evaluator.core.metrics.generation_time_metrics import GenerationTimeMetric
+from evaluator.core.metrics.overhead_metrics import ProcessingOverheadMetric
+from evaluator.core.metrics.token_efficiency_metrics import TokenEfficiencyMetric
 
 
 class ResultCollector:
@@ -85,6 +88,9 @@ class ResultCollector:
             ErrorCounterMetric,
             TTFTMetric,
             CostPerTurnMetric,
+            GenerationTimeMetric,
+            ProcessingOverheadMetric,
+            TokenEfficiencyMetric,
         ]
         for metric_cls in standard_metric_classes:
             try:
