@@ -242,6 +242,25 @@ class BaseEvaluator:
         # Reduce redundant logging; debug level controlled by ResultCollector
         # self.logger.debug(f"Recorded event: {event_type.name} - {data}")
 
+    def set_available_tools(self, task_id: str, tool_names: List[str]) -> None:
+        """
+        Store the list of available tools for validation.
+
+        Args:
+            task_id: Task ID to associate tools with
+            tool_names: List of available tool names
+        """
+        if task_id in self.result_collector.results:
+            self.result_collector.results[task_id]['metadata']['available_tools'] = tool_names
+            self.logger.info(f"Stored {len(tool_names)} available tools for validation")
+
+            # Emit TOOLS_INITIALIZED event for metrics to consume
+            self.record_event(AgentEvent.TOOLS_INITIALIZED, {
+                'tool_names': tool_names
+            })
+        else:
+            self.logger.warning(f"Task ID {task_id} not found in results, cannot store available tools")
+
     def set_message_handler(self, module_path) -> None:
         # Attempt to import the corresponding handler module
         try:

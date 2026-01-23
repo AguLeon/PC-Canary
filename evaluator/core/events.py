@@ -18,6 +18,7 @@ class AgentEvent(Enum):
     LLM_QUERY_END = auto()                 # data: {'timestamp', 'prompt_tokens': int (optional), 'completion_tokens': int (optional), 'cost': float (optional), 'status': 'success'|'error', 'error': str (optional)}
 
     # Tool Interaction
+    TOOLS_INITIALIZED = auto()             # data: {'timestamp', 'tool_names': List[str]}
     TOOL_CALL_START = auto()               # data: {'timestamp', 'tool_name': str, 'args': dict}
     TOOL_CALL_END = auto()                 # data: {'timestamp', 'tool_name': str, 'success': bool, 'result': Any (optional), 'error': str (optional)}
 
