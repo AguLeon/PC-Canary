@@ -6,11 +6,11 @@ import logging
 from typing import Dict, Any, Optional, List, Type
 from collections import defaultdict
 
-# 核心依赖
+# Core dependencies
 from evaluator.core.events import AgentEvent
 from evaluator.core.metrics.base_metrics import BaseMetric
 
-# 导入需要注册的标准和特定指标类 (根据你的文件结构调整路径)
+# Import standard and task-specific metric classes to register
 from evaluator.core.metrics.standard_metrics import (
     TotalTimeMetric,
     LLMCallCounterMetric,
@@ -22,27 +22,29 @@ from evaluator.core.metrics.standard_metrics import (
 
 from evaluator.core.metrics.error_metrics import ErrorCounterMetric
 from evaluator.core.metrics.keystep_metrics import KeyStepMetric
+from evaluator.core.metrics.ttft_metrics import TTFTMetric
+from evaluator.core.metrics.cost_metrics import CostPerTurnMetric
 
 
 class ResultCollector:
     """
-    结果收集器 V2:
-    负责收集原始事件流，管理指标计算器实例，分发事件，
-    并在评估结束时聚合和保存最终结果。
+    Result Collector V2:
+    Responsible for collecting raw event streams, managing metric calculator instances,
+    distributing events, and aggregating and saving final results at the end of evaluation.
     """
 
     def __init__(self,
                  output_dir: str = "results",
                  logger: Optional[logging.Logger] = None):
         """
-        初始化结果收集器。
+        Initialize the result collector.
 
         Args:
-            output_dir: 结果输出目录。
-            logger: 日志记录器。
+            output_dir: Result output directory.
+            logger: Logger instance.
         """
         self.output_dir = output_dir
-        # 主数据结构: task_id -> {metadata, raw_events, computed_metrics}
+        # Main data structure: task_id -> {metadata, raw_events, computed_metrics}
         self.results: Dict[str, Dict[str, Any]] = defaultdict(lambda: {
             "metadata": {},
             "raw_events": [],
@@ -50,29 +52,29 @@ class ResultCollector:
         })
         self.logger = logger if logger else logging.getLogger(self.__class__.__name__)
 
-        # 持有每个任务注册的指标实例: task_id -> List[BaseMetric]
+        # Hold registered metric instances for each task: task_id -> List[BaseMetric]
         self.registered_metrics: Dict[str, List[BaseMetric]] = defaultdict(list)
 
         os.makedirs(output_dir, exist_ok=True)
-        self.logger.info(f"结果收集器初始化完成，结果将保存在: {output_dir}")
+        self.logger.info(f"Result collector initialized, results will be saved to: {output_dir}")
 
     def _register_metrics_for_task(self, task_id: str, task_config: Dict[str, Any]):
         """
-        为指定任务注册默认和任务特定的指标实例。
-        只有在该任务初始配置时调用 (例如在 start_session 中)。
+        Register default and task-specific metric instances for the specified task.
+        Only called during initial task configuration (e.g., in start_session).
 
         Args:
-            task_id: 要注册指标的任务 ID。
-            task_config: 该任务的配置字典，用于初始化特定指标。
+            task_id: Task ID for which to register metrics.
+            task_config: Configuration dictionary for this task, used to initialize specific metrics.
         """
         if task_id in self.registered_metrics and self.registered_metrics[task_id]:
-            self.logger.warning(f"任务 {task_id} 的指标已经注册，跳过。")
+            self.logger.warning(f"Metrics for task {task_id} already registered, skipping.")
             return
 
         metrics_to_register: List[BaseMetric] = []
-        self.logger.info(f"开始为任务 {task_id} 注册指标...")
+        self.logger.info(f"Starting metric registration for task {task_id}...")
 
-        # --- 1. 注册通用指标 ---
+        # --- 1. Register standard metrics ---
         standard_metric_classes: List[Type[BaseMetric]] = [
             TotalTimeMetric,
             LLMCallCounterMetric,
@@ -81,22 +83,24 @@ class ResultCollector:
             AgentSelfReportedCompletionMetric,
             ToolUsageMetric,
             ErrorCounterMetric,
+            TTFTMetric,
+            CostPerTurnMetric,
         ]
         for metric_cls in standard_metric_classes:
             try:
-                # 将 logger 传递给指标实例
+                # Pass logger to metric instance
                 instance = metric_cls(logger=self.logger.getChild(metric_cls.__name__))
                 metrics_to_register.append(instance)
-                self.logger.debug(f"注册标准指标: {instance.get_name()} for task {task_id}")
+                self.logger.debug(f"Registered standard metric: {instance.get_name()} for task {task_id}")
             except Exception as e:
-                self.logger.error(f"注册标准指标 {metric_cls.__name__} (任务 {task_id}) 失败: {e}", exc_info=True)
+                self.logger.error(f"Failed to register standard metric {metric_cls.__name__} (task {task_id}): {e}", exc_info=True)
 
-        # --- 2. 注册任务特定指标 (示例: KeyStepMetric) ---
-        # 获取总步骤数
+        # --- 2. Register task-specific metrics (example: KeyStepMetric) ---
+        # Get total number of steps
         total_steps = task_config.get('total_key_steps', 0)
 
         if isinstance(total_steps, int) and total_steps > 0:
-            # 构建 step_names 映射
+            # Build step_names mapping
             parsed_step_names = {}
             event_configs = task_config.get('events', {})
             if isinstance(event_configs, dict):
@@ -105,119 +109,119 @@ class ResultCollector:
                         idx = event_config.get('key_step_index')
                         name = event_config.get('key_step_name')
                         if isinstance(idx, int) and idx > 0 and isinstance(name, str):
-                            if idx not in parsed_step_names: # 防止重复（虽然 BaseEvaluator 也检查了）
+                            if idx not in parsed_step_names: # Prevent duplicates (though BaseEvaluator also checks)
                                 parsed_step_names[idx] = name
                             else:
-                                self.logger.warning(f"任务 {task_id} 配置的 events 中存在重复的关键步骤索引 {idx}，使用第一个名称 '{parsed_step_names[idx]}'")
+                                self.logger.warning(f"Task {task_id} config has duplicate key step index {idx} in events, using first name '{parsed_step_names[idx]}'")
 
             if not parsed_step_names:
-                self.logger.warning(f"为任务 {task_id} 注册 KeyStepMetric 时，在 events 配置中未找到有效的 key_step 定义。")
-            # 即使没有 step_names，只要 total_steps 有效，仍然可以注册 KeyStepMetric
+                self.logger.warning(f"When registering KeyStepMetric for task {task_id}, no valid key_step definitions found in events config.")
+            # Even without step_names, KeyStepMetric can still be registered as long as total_steps is valid
             elif len(parsed_step_names) != total_steps:
-                self.logger.warning(f"为任务 {task_id} 注册 KeyStepMetric 时，配置的 total_key_steps ({total_steps}) 与 events 中定义的 key_step 数量 ({len(parsed_step_names)}) 不匹配。")
+                self.logger.warning(f"When registering KeyStepMetric for task {task_id}, configured total_key_steps ({total_steps}) does not match the number of key_steps defined in events ({len(parsed_step_names)}).")
 
             try:
                 instance = KeyStepMetric(
                     total_steps=total_steps,
-                    step_names=parsed_step_names, # 使用从 events 解析出的映射
+                    step_names=parsed_step_names, # Use mapping parsed from events
                     logger=self.logger.getChild(KeyStepMetric.__name__)
                 )
                 metrics_to_register.append(instance)
-                self.logger.debug(f"注册任务特定指标: {instance.get_name()} for task {task_id} (Total Steps: {total_steps}, Names: {parsed_step_names})")
+                self.logger.debug(f"Registered task-specific metric: {instance.get_name()} for task {task_id} (Total Steps: {total_steps}, Names: {parsed_step_names})")
             except ValueError as ve:
-                self.logger.error(f"注册 KeyStepMetric (任务 {task_id}) 失败: {ve}")
+                self.logger.error(f"Failed to register KeyStepMetric (task {task_id}): {ve}")
             except Exception as e:
-                self.logger.error(f"注册 KeyStepMetric (任务 {task_id}) 时发生未知错误: {e}", exc_info=True)
+                self.logger.error(f"Unknown error occurred while registering KeyStepMetric (task {task_id}): {e}", exc_info=True)
         else:
-            self.logger.info(f"任务 {task_id} 配置中未找到有效的 total_key_steps > 0，跳过注册 KeyStepMetric。")
+            self.logger.info(f"Valid total_key_steps > 0 not found in task {task_id} config, skipping KeyStepMetric registration.")
 
-        # --- (可以添加更多基于配置加载新的特定指标的逻辑) ---
-        # 例如: if task_config.get('requires_custom_metric_X'): register CustomMetricX(...)
+        # --- (Can add more logic for loading new specific metrics based on config) ---
+        # Example: if task_config.get('requires_custom_metric_X'): register CustomMetricX(...)
 
         self.registered_metrics[task_id] = metrics_to_register
-        self.logger.info(f"任务 {task_id} 的指标注册完成，共 {len(metrics_to_register)} 个指标。")
+        self.logger.info(f"Metric registration for task {task_id} complete, total of {len(metrics_to_register)} metrics.")
 
 
     def start_session(self, task_id: str, session_data: Dict[str, Any], task_config: Dict[str, Any]) -> None:
         """
-        开始一个评估会话，注册指标并记录元数据。
+        Start an evaluation session, register metrics and record metadata.
 
         Args:
-            task_id: 任务ID。
-            session_data: 会话初始元数据 (如 app_path, pid)。
-            task_config: 该任务的完整配置字典。
+            task_id: Task ID.
+            session_data: Initial session metadata (e.g., app_path, pid).
+            task_config: Complete configuration dictionary for this task.
         """
-        # 确保为这个任务注册指标 (如果尚未注册)
+        # Ensure metrics are registered for this task (if not already registered)
         self._register_metrics_for_task(task_id, task_config)
 
-        # 初始化或重置结果结构（如果之前运行过）
+        # Initialize or reset result structure (if previously run)
         self.results[task_id] = {
             "metadata": {},
             "raw_events": [],
             "computed_metrics": {}
         }
-        # 重置该任务的指标状态
+        # Reset metric state for this task
         self.reset_metrics(task_id)
 
         now = time.time()
         self.results[task_id]['metadata'] = {
             "session_start_iso": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(now)),
             "session_start_unix": now,
-            "task_config_at_start": task_config, # 存储任务配置快照
-            **session_data # 合并传入的元数据
+            "task_config_at_start": task_config, # Store task config snapshot
+            **session_data # Merge in passed metadata
         }
 
-        self.logger.info(f"任务会话开始: {task_id}")
+        self.logger.info(f"Task session started: {task_id}")
 
 
     def record_event(self, task_id: str, event_type: AgentEvent, data: Dict[str, Any]) -> None:
         """
-        记录一个标准化的 AgentEvent，并将其分发给该任务已注册的指标处理器。
+        Record a standardized AgentEvent and distribute it to registered metric handlers for this task.
 
         Args:
-            task_id: 任务ID。
-            event_type: 事件类型 (AgentEvent 枚举成员)。
-            data: 事件相关数据 (应包含 'timestamp')。
+            task_id: Task ID.
+            event_type: Event type (AgentEvent enum member).
+            data: Event-related data (should contain 'timestamp').
         """
-        # 确保时间戳存在 (BaseEvaluator也应该做这个检查)
+        # Ensure timestamp exists (BaseEvaluator should also do this check)
         if 'timestamp' not in data:
             data['timestamp'] = time.time()
 
-        # --- 1. 存储原始事件 ---
-        # 添加事件类型名称以便于阅读原始日志
+        # --- 1. Store raw event ---
+        # Add event type name for easier reading of raw logs
         raw_event_entry = {
             'event_type': event_type.name,
             **data
         }
-        # 使用 defaultdict 后无需检查 key 是否存在
+        # No need to check if key exists after using defaultdict
         self.results[task_id]['raw_events'].append(raw_event_entry)
-        # 减少日志冗余，只在 DEBUG 级别记录详细数据
-        self.logger.debug(f"记录原始事件: {task_id} - {event_type.name} - {data if self.logger.isEnabledFor(logging.DEBUG) else '...'}")
+        # Reduce log redundancy, only record detailed data at DEBUG level
+        self.logger.debug(f"Recorded raw event: {task_id} - {event_type.name} - {data if self.logger.isEnabledFor(logging.DEBUG) else '...'}")
 
-        # --- 2. 分发给指标处理器 ---
+        # --- 2. Distribute to metric handlers ---
         if task_id in self.registered_metrics:
             for metric in self.registered_metrics[task_id]:
                 try:
-                    # 每个指标自己处理是否关心此事件
+                    # Each metric handles whether it cares about this event
                     metric.process_event(event_type, data)
                 except Exception as e:
-                    # 记录错误，但继续处理其他指标
-                    self.logger.error(f"指标 {metric.get_name()} 处理事件 {event_type.name} (任务 {task_id}) 时出错: {e}", exc_info=True)
+                    # Log error but continue processing other metrics
+                    self.logger.error(f"Error while metric {metric.get_name()} was processing event {event_type.name} (task {task_id}): {e}", exc_info=True)
         else:
-            # 这通常不应该发生，因为 start_session 会注册指标
-            self.logger.warning(f"任务 {task_id} 没有注册的指标，无法分发事件 {event_type.name}。")
+            # This should not normally happen since start_session registers metrics
+            self.logger.warning(f"Task {task_id} has no registered metrics, cannot distribute event {event_type.name}.")
 
 
     def finalize_results(self, task_id: str) -> None:
         """
-        在评估结束时，计算所有注册指标的最终值。
-        此方法应在 end_session 内部或之前显式调用。
+        At evaluation end, calculate final values for all registered metrics.
+        This method should be explicitly called inside or before end_session.
         """
         if task_id not in self.results:
-            self.logger.error(f"无法最终化结果，任务 {task_id} 的结果结构不存在。")
+            self.logger.error(f"Cannot finalize results, result structure for task {task_id} does not exist.")
             return
 
-        self.logger.info(f"开始为任务 {task_id} 计算最终指标...")
+        self.logger.info(f"Starting final metric calculation for task {task_id}...")
         computed_metrics: Dict[str, Any] = {}
 
         if task_id in self.registered_metrics:
@@ -226,35 +230,35 @@ class ResultCollector:
                 try:
                     metric_value = metric.get_value()
                     computed_metrics[metric_name] = metric_value
-                    # 减少日志冗余，只在 DEBUG 级别记录每个值
-                    self.logger.debug(f"指标计算完成 ({task_id}): {metric_name} = {metric_value if self.logger.isEnabledFor(logging.DEBUG) else '...'}")
+                    # Reduce log redundancy, only record each value at DEBUG level
+                    self.logger.debug(f"Metric calculation complete ({task_id}): {metric_name} = {metric_value if self.logger.isEnabledFor(logging.DEBUG) else '...'}")
                 except Exception as e:
-                    self.logger.error(f"获取指标 {metric_name} 的值 (任务 {task_id}) 时出错: {e}", exc_info=True)
-                    computed_metrics[metric_name] = f"ERROR_GETTING_VALUE: {e}" # 在结果中记录错误
+                    self.logger.error(f"Error getting value for metric {metric_name} (task {task_id}): {e}", exc_info=True)
+                    computed_metrics[metric_name] = f"ERROR_GETTING_VALUE: {e}" # Record error in results
         else:
-             self.logger.warning(f"任务 {task_id} 没有注册的指标，无法计算最终值。")
+             self.logger.warning(f"Task {task_id} has no registered metrics, cannot calculate final values.")
 
-        # 将计算出的指标存储在结果结构中
+        # Store calculated metrics in result structure
         self.results[task_id]['computed_metrics'] = computed_metrics
-        self.logger.info(f"任务 {task_id} 的最终指标计算完成。")
+        self.logger.info(f"Final metric calculation for task {task_id} complete.")
 
 
     def end_session(self, task_id: str, session_data: Dict[str, Any] = None) -> None:
         """
-        结束一个评估会话，计算最终指标并记录结束时间。
+        End an evaluation session, calculate final metrics and record end time.
 
         Args:
-            task_id: 任务ID。
-            session_data: 会话结束时要补充的元数据 (可选)。
+            task_id: Task ID.
+            session_data: Metadata to supplement at session end (optional).
         """
         if task_id not in self.results:
-            self.logger.error(f"无法结束会话，任务 {task_id} 不存在或未开始。")
+            self.logger.error(f"Cannot end session, task {task_id} does not exist or was not started.")
             return
 
-        # --- 1. 确保最终指标被计算 ---
+        # --- 1. Ensure final metrics are calculated ---
         self.finalize_results(task_id)
 
-        # --- 2. 记录结束时间和总时长 ---
+        # --- 2. Record end time and total duration ---
         now = time.time()
         metadata = self.results[task_id]['metadata']
         metadata["session_end_iso"] = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(now))
@@ -266,48 +270,48 @@ class ResultCollector:
             duration = round(now - start_time, 3)
             metadata["session_duration_seconds"] = duration
 
-        # 合并任何额外的结束会话数据
+        # Merge any additional end session data
         if session_data:
              metadata.update(session_data)
 
-        self.logger.info(f"任务会话结束: {task_id}. 总时长: {duration if duration is not None else 'N/A'} 秒")
+        self.logger.info(f"Task session ended: {task_id}. Total duration: {duration if duration is not None else 'N/A'} seconds")
 
 
     def get_results(self, task_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        获取指定任务或所有任务的评估结果。
+        Get evaluation results for specified task or all tasks.
 
         Args:
-            task_id: 任务ID，为None则返回所有任务结果。
+            task_id: Task ID, returns all task results if None.
 
         Returns:
-            评估结果字典。
+            Evaluation results dictionary.
         """
         if task_id is not None:
-            # 返回深拷贝以防止外部修改内部状态？对于大型结果可能影响性能
+            # Return deep copy to prevent external modification of internal state? May impact performance for large results
             # import copy; return copy.deepcopy(self.results.get(task_id, {}))
             return self.results.get(task_id, {})
-        # import copy; return copy.deepcopy(dict(self.results)) # 返回所有结果的拷贝
-        return dict(self.results) # 返回浅拷贝
+        # import copy; return copy.deepcopy(dict(self.results)) # Return copy of all results
+        return dict(self.results) # Return shallow copy
 
     def get_current_metrics(self, task_id: str) -> Dict[str, Any]:
         """
-        获取指定任务当前所有已注册指标的值（快照）。
-        这不会结束会话，也不会将结果存储在最终的 computed_metrics 中。
-        用于在评估过程中检查中间状态。
+        Get values (snapshot) of all currently registered metrics for specified task.
+        This does not end the session, nor does it store results in final computed_metrics.
+        Used to check intermediate state during evaluation.
 
         Args:
-            task_id: 任务ID。
+            task_id: Task ID.
 
         Returns:
-            一个包含当前计算出的指标名称和值的字典。
-            如果任务ID无效或没有注册指标，则返回空字典。
+            A dictionary containing current calculated metric names and values.
+            Returns empty dictionary if task ID is invalid or has no registered metrics.
         """
         if task_id not in self.registered_metrics or not self.registered_metrics[task_id]:
-            self.logger.warning(f"尝试获取当前指标失败，任务 {task_id} 不存在或没有注册的指标。")
+            self.logger.warning(f"Failed to get current metrics, task {task_id} does not exist or has no registered metrics.")
             return {}
 
-        self.logger.debug(f"开始为任务 {task_id} 计算当前指标快照...")
+        self.logger.debug(f"Starting current metric snapshot calculation for task {task_id}...")
         current_metrics: Dict[str, Any] = {}
 
         for metric in self.registered_metrics[task_id]:
@@ -315,25 +319,25 @@ class ResultCollector:
             try:
                 metric_value = metric.get_value()
                 current_metrics[metric_name] = metric_value
-                # 减少日志冗余，只在 DEBUG 级别记录每个值
-                self.logger.debug(f"当前指标计算 ({task_id}): {metric_name} = {metric_value if self.logger.isEnabledFor(logging.DEBUG) else '...'}")
+                # Reduce log redundancy, only record each value at DEBUG level
+                self.logger.debug(f"Current metric calculation ({task_id}): {metric_name} = {metric_value if self.logger.isEnabledFor(logging.DEBUG) else '...'}")
             except Exception as e:
-                self.logger.error(f"获取指标 {metric_name} 的当前值 (任务 {task_id}) 时出错: {e}", exc_info=True)
-                current_metrics[metric_name] = f"ERROR_GETTING_VALUE: {e}" # 在结果中记录错误
-        
-        self.logger.debug(f"任务 {task_id} 的当前指标快照计算完成。")
+                self.logger.error(f"Error getting current value for metric {metric_name} (task {task_id}): {e}", exc_info=True)
+                current_metrics[metric_name] = f"ERROR_GETTING_VALUE: {e}" # Record error in results
+
+        self.logger.debug(f"Current metric snapshot calculation for task {task_id} complete.")
         return current_metrics
 
     def save_results(self, task_id: Optional[str] = None, filename_prefix: str = "result") -> str:
         """
-        保存评估结果到 JSON 文件。
+        Save evaluation results to JSON file.
 
         Args:
-            task_id: 任务ID，为None则保存所有任务结果到单个文件。
-            filename_prefix: 生成的文件名前缀。
+            task_id: Task ID, saves all task results to single file if None.
+            filename_prefix: Generated filename prefix.
 
         Returns:
-            结果文件路径，如果失败则返回空字符串。
+            Result file path, returns empty string if failed.
         """
         timestamp_str = time.strftime("%Y%m%d_%H%M%S")
         file_path = ""
@@ -341,44 +345,44 @@ class ResultCollector:
         try:
             if task_id is not None:
                 if task_id not in self.results:
-                    self.logger.warning(f"无法保存结果，任务 {task_id} 的结果不存在。")
+                    self.logger.warning(f"Cannot save results, results for task {task_id} do not exist.")
                     return ""
                 file_path = os.path.join(self.output_dir, f"{filename_prefix}_{task_id}_{timestamp_str}.json")
                 data_to_save = self.results[task_id]
-                log_msg = f"任务 {task_id} 结果已保存: {file_path}"
+                log_msg = f"Results for task {task_id} saved: {file_path}"
             else:
                 file_path = os.path.join(self.output_dir, f"{filename_prefix}_all_{timestamp_str}.json")
-                data_to_save = dict(self.results) # 保存所有结果的快照
-                log_msg = f"所有任务结果已保存: {file_path}"
+                data_to_save = dict(self.results) # Save snapshot of all results
+                log_msg = f"All task results saved: {file_path}"
 
             with open(file_path, 'w', encoding='utf-8') as f:
-                # 使用 default=str 来处理无法序列化的类型 (例如 Enum 成员，如果它们最终进入数据)
+                # Use default=str to handle non-serializable types (e.g., Enum members if they end up in data)
                 json.dump(data_to_save, f, indent=2, ensure_ascii=False, default=str)
 
             self.logger.info(log_msg)
             return file_path
         except TypeError as te:
-             self.logger.error(f"保存结果到 {file_path} 时发生序列化错误: {te}. 确保指标的 get_value() 返回 JSON 兼容类型。", exc_info=True)
+             self.logger.error(f"Serialization error occurred while saving results to {file_path}: {te}. Ensure metric get_value() returns JSON-compatible types.", exc_info=True)
              return ""
         except Exception as e:
-            self.logger.error(f"保存结果到 {file_path} 失败: {e}", exc_info=True)
+            self.logger.error(f"Failed to save results to {file_path}: {e}", exc_info=True)
             return ""
 
 
     def clear_results(self, task_id: Optional[str] = None) -> None:
         """
-        清除内存中的指定任务或所有任务的评估结果和指标实例。
+        Clear evaluation results and metric instances for specified task or all tasks from memory.
 
         Args:
-            task_id: 任务ID，为None则清除所有结果。
+            task_id: Task ID, clears all results if None.
         """
         tasks_to_clear = [task_id] if task_id and task_id in self.results else list(self.results.keys()) if task_id is None else []
 
         if not tasks_to_clear and task_id:
-             self.logger.warning(f"尝试清除不存在的任务结果: {task_id}")
+             self.logger.warning(f"Attempted to clear results for non-existent task: {task_id}")
              return
         elif not tasks_to_clear and task_id is None:
-            self.logger.info("没有结果需要清除。")
+            self.logger.info("No results to clear.")
             return
 
         for tid in tasks_to_clear:
@@ -386,40 +390,40 @@ class ResultCollector:
                 del self.results[tid]
             if tid in self.registered_metrics:
                 del self.registered_metrics[tid]
-            self.logger.info(f"已清除任务 {tid} 的结果和指标实例。")
+            self.logger.info(f"Cleared results and metric instances for task {tid}.")
 
         if task_id is None:
-             self.logger.info("已清除所有评估结果和指标实例。")
+             self.logger.info("Cleared all evaluation results and metric instances.")
 
 
     def reset_metrics(self, task_id: Optional[str] = None) -> None:
         """
-        重置指定任务或所有任务的所有已注册指标的内部状态。
-        用于在不重新创建收集器的情况下运行新一轮评估。
+        Reset internal state of all registered metrics for specified task or all tasks.
+        Used to run new evaluation round without recreating collector.
 
         Args:
-            task_id: 任务ID，为None则重置所有任务的指标。
+            task_id: Task ID, resets metrics for all tasks if None.
         """
         tasks_to_reset = [task_id] if task_id and task_id in self.registered_metrics else list(self.registered_metrics.keys()) if task_id is None else []
 
         if not tasks_to_reset and task_id:
-             self.logger.warning(f"尝试重置不存在的任务指标: {task_id}")
+             self.logger.warning(f"Attempted to reset metrics for non-existent task: {task_id}")
              return
         elif not tasks_to_reset and task_id is None:
-            self.logger.info("没有指标需要重置。")
+            self.logger.info("No metrics to reset.")
             return
 
         for tid in tasks_to_reset:
-            self.logger.info(f"正在重置任务 {tid} 的指标状态...")
+            self.logger.info(f"Resetting metric state for task {tid}...")
             metric_count = 0
             for metric in self.registered_metrics[tid]:
                 try:
                     metric.reset()
                     metric_count += 1
                 except Exception as e:
-                    self.logger.error(f"重置指标 {metric.get_name()} (任务 {tid}) 时出错: {e}", exc_info=True)
-            self.logger.info(f"任务 {tid} 的 {metric_count} 个指标已重置。")
-            # 重置后也清除上次运行的计算结果和原始事件
+                    self.logger.error(f"Error resetting metric {metric.get_name()} (task {tid}): {e}", exc_info=True)
+            self.logger.info(f"{metric_count} metrics for task {tid} have been reset.")
+            # Also clear previous run's calculated results and raw events after reset
             if tid in self.results:
                 self.results[tid]['raw_events'] = []
                 self.results[tid]['computed_metrics'] = {}

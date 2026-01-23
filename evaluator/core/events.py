@@ -14,6 +14,7 @@ class AgentEvent(Enum):
 
     # LLM Interaction
     LLM_QUERY_START = auto()               # data: {'timestamp', 'model_name': str (optional)}
+    LLM_FIRST_TOKEN_RECEIVED = auto()      # data: {'timestamp'} - When first token arrives from LLM
     LLM_QUERY_END = auto()                 # data: {'timestamp', 'prompt_tokens': int (optional), 'completion_tokens': int (optional), 'cost': float (optional), 'status': 'success'|'error', 'error': str (optional)}
 
     # Tool Interaction
