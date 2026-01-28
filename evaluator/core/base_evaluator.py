@@ -59,13 +59,13 @@ class BaseEvaluator:
         self.task_category = task["category"]
         self.task_id = task["id"]
         self.log_dir = log_dir
-        self.session_id = time.strftime("%Y%m%d_%H%M%S")
-        self.session_dir = os.path.join(log_dir, self.session_id)
+        # Use log_dir directly without creating session subdirectory
+        self.session_dir = log_dir
 
         # Save custom parameters
         self.custom_params = custom_params or {}
 
-        # Create session directory
+        # Create output directory
         os.makedirs(self.session_dir, exist_ok=True)
 
         # Set up logger

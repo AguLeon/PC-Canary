@@ -225,11 +225,17 @@ class ResultCollector:
         self.reset_metrics(task_id)
 
         now = time.time()
+        # Extract model info from environment
+        model_name = os.environ.get("MODEL", "unknown")
+        infrastructure_tag = os.environ.get("INFRASTRUCTURE_TAG", "")
+
         self.results[task_id]["metadata"] = {
             "session_start_iso": time.strftime(
                 "%Y-%m-%dT%H:%M:%S%z", time.localtime(now)
             ),
             "session_start_unix": now,
+            "model_name": model_name,  # Add model name
+            "infrastructure_tag": infrastructure_tag,  # Add infrastructure tag
             "task_config_at_start": task_config,  # Store task config snapshot
             **session_data,  # Merge in passed metadata
         }
@@ -460,8 +466,10 @@ class ResultCollector:
             Result file path, returns empty string if failed.
         """
         timestamp_str = time.strftime("%Y%m%d_%H%M%S")
-        model_name = os.environ("MODEL")
-        model_name = model_name.replace(":", "-")
+        # Extract model name and infrastructure tag from environment
+        model_name = os.environ.get("MODEL", "unknown").replace(":", "-")
+        infrastructure_tag = os.environ.get("INFRASTRUCTURE_TAG", "")
+        infrastructure_suffix = f"_{infrastructure_tag}" if infrastructure_tag else ""
         file_path = ""
 
         try:
@@ -473,14 +481,14 @@ class ResultCollector:
                     return ""
                 file_path = os.path.join(
                     self.output_dir,
-                    f"{filename_prefix}_{model_name}_{task_id}_{timestamp_str}.json",
+                    f"{filename_prefix}_{model_name}{infrastructure_suffix}_{task_id}_{timestamp_str}.json",
                 )
                 data_to_save = self.results[task_id]
                 log_msg = f"Results for task {task_id} saved: {file_path}"
             else:
                 file_path = os.path.join(
                     self.output_dir,
-                    f"{filename_prefix}_{model_name}_all_{timestamp_str}.json",
+                    f"{filename_prefix}_{model_name}{infrastructure_suffix}_all_{timestamp_str}.json",
                 )
                 data_to_save = dict(self.results)  # Save snapshot of all results
                 log_msg = f"All task results saved: {file_path}"
