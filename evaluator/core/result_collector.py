@@ -28,6 +28,7 @@ from evaluator.core.metrics.generation_time_metrics import GenerationTimeMetric
 from evaluator.core.metrics.overhead_metrics import ProcessingOverheadMetric
 from evaluator.core.metrics.token_efficiency_metrics import TokenEfficiencyMetric
 from evaluator.core.metrics.tool_hallucination_metrics import ToolHallucinationMetric
+from evaluator.core.metrics.loop_detection_metrics import LoopDetectionMetric
 
 
 class ResultCollector:
@@ -95,6 +96,7 @@ class ResultCollector:
             ProcessingOverheadMetric,
             TokenEfficiencyMetric,
             ToolHallucinationMetric,
+            LoopDetectionMetric,
         ]
         for metric_cls in standard_metric_classes:
             try:

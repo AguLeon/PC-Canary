@@ -7,9 +7,9 @@ from collections import defaultdict
 from evaluator.core.metrics.base_metrics import BaseMetric
 from evaluator.core.events import AgentEvent
 
-# TODO 这样子实现的话，每次维护成员变量都需要传入 Event 实例和 data，且 data 需要规范，可能需要提供一个更简单的接口
+# TODO: This implementation requires passing Event instance and data for each member variable update, and data needs to be standardized. May need a simpler interface.
 class TotalTimeMetric(BaseMetric):
-    """计算任务总耗时的指标。"""
+    """Metric for calculating total task duration."""
     def __init__(self, logger: Optional[logging.Logger] = None):
         super().__init__(logger)
         self.task_start_time: Optional[float] = None
@@ -25,17 +25,17 @@ class TotalTimeMetric(BaseMetric):
         if event_type == AgentEvent.TASK_START:
             if self.task_start_time is None:
                 self.task_start_time = timestamp
-                self.logger.debug(f"记录任务开始时间: {self.task_start_time}")
+                self.logger.debug(f"Recorded task start time: {self.task_start_time}")
         elif event_type == AgentEvent.TASK_END:
-             # 记录最后一次 TASK_END 作为结束时间
+             # Record last TASK_END as end time
              self.task_end_time = timestamp
-             self.logger.debug(f"记录任务结束时间: {self.task_end_time}")
+             self.logger.debug(f"Recorded task end time: {self.task_end_time}")
 
     def get_value(self) -> Optional[float]:
         if self.task_start_time is not None and self.task_end_time is not None:
             duration = self.task_end_time - self.task_start_time
             return round(duration, 3)
-        self.logger.warning(f"无法计算总时长，开始: {self.task_start_time}, 结束: {self.task_end_time}")
+        self.logger.warning(f"Cannot calculate total duration, start: {self.task_start_time}, end: {self.task_end_time}")
         return None
 
     def reset(self) -> None:
@@ -44,7 +44,7 @@ class TotalTimeMetric(BaseMetric):
         self.task_end_time = None
 
 class LLMCallCounterMetric(BaseMetric):
-    """统计 LLM 调用次数的指标。"""
+    """Metric for counting LLM API calls."""
     def __init__(self, logger: Optional[logging.Logger] = None):
         super().__init__(logger)
         self.call_count = 0
@@ -54,9 +54,9 @@ class LLMCallCounterMetric(BaseMetric):
 
     def process_event(self, event_type: AgentEvent, data: Dict[str, Any]) -> None:
         super().process_event(event_type, data)
-        if event_type == AgentEvent.LLM_QUERY_START: # 在请求开始时计数
+        if event_type == AgentEvent.LLM_QUERY_START: # Count at request start
             self.call_count += 1
-            self.logger.debug(f"LLM 调用次数增加: {self.call_count}")
+            self.logger.debug(f"LLM call count increased: {self.call_count}")
 
     def get_value(self) -> int:
         return self.call_count
@@ -66,7 +66,7 @@ class LLMCallCounterMetric(BaseMetric):
         self.call_count = 0
 
 class TokenCounterMetric(BaseMetric):
-    """统计 LLM Token 消耗的指标。"""
+    """Metric for tracking LLM token consumption."""
     def __init__(self, logger: Optional[logging.Logger] = None):
         super().__init__(logger)
         self.total_prompt_tokens = 0
@@ -78,7 +78,7 @@ class TokenCounterMetric(BaseMetric):
 
     def process_event(self, event_type: AgentEvent, data: Dict[str, Any]) -> None:
         super().process_event(event_type, data)
-        # TODO 这样的写法意味着 data 的格式可能是各不一样的或者需要设计某种规范的格式
+        # TODO: This implementation implies data format may vary, may need standardized format design
         if event_type == AgentEvent.LLM_QUERY_END and data.get('status') == 'success':
             prompt_tokens = data.get('prompt_tokens', 0)
             completion_tokens = data.get('completion_tokens', 0)
@@ -86,7 +86,7 @@ class TokenCounterMetric(BaseMetric):
                 self.total_prompt_tokens += prompt_tokens
                 self.total_completion_tokens += completion_tokens
                 self.total_tokens = self.total_prompt_tokens + self.total_completion_tokens
-                self.logger.debug(f"Token 累计: Prompt={self.total_prompt_tokens}, Completion={self.total_completion_tokens}, Total={self.total_tokens}")
+                self.logger.debug(f"Token accumulation: Prompt={self.total_prompt_tokens}, Completion={self.total_completion_tokens}, Total={self.total_tokens}")
             else:
                 self.logger.warning(f"LLM_QUERY_END event missing valid token data: {data}")
 
@@ -105,9 +105,10 @@ class TokenCounterMetric(BaseMetric):
 
 class TaskCompletionStatusMetric(BaseMetric):
     """
-    记录任务最终完成状态的基础指标。
-    主要依赖 TASK_END 事件。任务特定的成功/失败判断应由子类或
-    其他监听 APP_SPECIFIC_EVENT 的指标处理，并最终影响 TASK_END 的状态。
+    Base metric for recording final task completion status.
+    Primarily relies on TASK_END event. Task-specific success/failure determination
+    should be handled by subclasses or other metrics listening to APP_SPECIFIC_EVENT,
+    ultimately affecting the TASK_END status.
     """
     def __init__(self, logger: Optional[logging.Logger] = None):
         super().__init__(logger)
@@ -120,10 +121,10 @@ class TaskCompletionStatusMetric(BaseMetric):
     def process_event(self, event_type: AgentEvent, data: Dict[str, Any]) -> None:
         super().process_event(event_type, data)
         if event_type == AgentEvent.TASK_END:
-            task_status = data.get('status', 'failure') # 默认为失败，除非明确成功或超时
+            task_status = data.get('status', 'failure') # Default to failure unless explicitly success or timeout
             self.status = task_status
             self.reason = data.get('reason', '')
-            self.logger.info(f"记录任务最终状态: {self.status}, 原因: {self.reason}")
+            self.logger.info(f"Recorded final task status: {self.status}, reason: {self.reason}")
 
     def get_value(self) -> Dict[str, str]:
         return {"status": self.status, "reason": self.reason}
@@ -134,8 +135,8 @@ class TaskCompletionStatusMetric(BaseMetric):
         self.reason = ""
 
 class AgentSelfReportedCompletionMetric(BaseMetric):
-    """记录Agent是否认为自己完成了任务。"""
-    # TODO 这可能需要修改原始 computer use 的 prompt，设计一个 agent 自己的报告
+    """Records whether the Agent believes it has completed the task."""
+    # TODO: This may require modifying the original computer use prompt to design an agent self-report mechanism
     def __init__(self, logger: Optional[logging.Logger] = None):
         super().__init__(logger)
         self.agent_reported_completion = False
@@ -149,11 +150,11 @@ class AgentSelfReportedCompletionMetric(BaseMetric):
         if event_type == AgentEvent.AGENT_REPORTED_COMPLETION:
             self.agent_reported_completion = True
             self.reasoning = data.get('reasoning')
-            self.logger.info(f"Agent报告任务完成。推理: {self.reasoning}")
+            self.logger.info(f"Agent reported task completion. Reasoning: {self.reasoning}")
         elif event_type == AgentEvent.STEP_END and data.get('agent_believes_completed'):
              self.agent_reported_completion = True
              self.reasoning = data.get('reasoning', 'Indicated in STEP_END')
-             self.logger.info(f"Agent在步骤结束时表明任务完成。")
+             self.logger.info(f"Agent indicated task completion at step end.")
 
 
     def get_value(self) -> Dict[str, Any]:
@@ -168,10 +169,10 @@ class AgentSelfReportedCompletionMetric(BaseMetric):
         self.reasoning = None
 
 class ToolUsageMetric(BaseMetric):
-    """跟踪工具使用情况的指标，包括调用次数、成功/失败、参数和错误。"""
+    """Metric for tracking tool usage including call counts, success/failure, arguments, and errors."""
     def __init__(self, logger: Optional[logging.Logger] = None):
         super().__init__(logger)
-        # 存储结构: {tool_name: {'calls': [], 'total_count': 0, 'success_count': 0, 'failure_count': 0}}
+        # Storage structure: {tool_name: {'calls': [], 'total_count': 0, 'success_count': 0, 'failure_count': 0}}
         self.tool_stats = defaultdict(lambda: {
             'calls': [],
             'total_count': 0,
@@ -201,9 +202,9 @@ class ToolUsageMetric(BaseMetric):
                 })
                 self.tool_stats[tool_name]['total_count'] += 1
                 self.total_tool_calls += 1
-                self.logger.debug(f"工具调用开始: {tool_name}, Args: {args}")
+                self.logger.debug(f"Tool call started: {tool_name}, Args: {args}")
             else:
-                self.logger.warning(f"TOOL_CALL_START 事件缺少 tool_name: {data}")
+                self.logger.warning(f"TOOL_CALL_START event missing tool_name: {data}")
 
         elif event_type == AgentEvent.TOOL_CALL_END:
             tool_name = data.get('tool_name')
@@ -212,8 +213,8 @@ class ToolUsageMetric(BaseMetric):
             error = data.get('error')
 
             if tool_name and tool_name in self.tool_stats:
-                 # 找到对应的 'start' 调用并更新它
-                 # 假设调用是顺序的，更新最后一个未完成的调用
+                 # Find and update the corresponding 'start' call
+                 # Assumes calls are sequential, updates the last incomplete call
                  call_list = self.tool_stats[tool_name]['calls']
                  if call_list and call_list[-1]['end_time'] is None:
                      last_call = call_list[-1]
@@ -226,21 +227,21 @@ class ToolUsageMetric(BaseMetric):
 
                      if success:
                          self.tool_stats[tool_name]['success_count'] += 1
-                         self.logger.debug(f"工具调用成功: {tool_name}")
+                         self.logger.debug(f"Tool call succeeded: {tool_name}")
                      else:
                          self.tool_stats[tool_name]['failure_count'] += 1
-                         self.logger.warning(f"工具调用失败: {tool_name}, Error: {error}")
+                         self.logger.warning(f"Tool call failed: {tool_name}, Error: {error}")
                  else:
-                    self.logger.error(f"收到 TOOL_CALL_END 但找不到匹配的开始事件或调用已结束: {tool_name}")
+                    self.logger.error(f"Received TOOL_CALL_END but no matching start event found or call already ended: {tool_name}")
 
             elif tool_name:
-                 self.logger.error(f"收到 TOOL_CALL_END 但未记录该工具的开始事件: {tool_name}")
+                 self.logger.error(f"Received TOOL_CALL_END but start event was not recorded for tool: {tool_name}")
             else:
-                self.logger.warning(f"TOOL_CALL_END 事件缺少 tool_name: {data}")
+                self.logger.warning(f"TOOL_CALL_END event missing tool_name: {data}")
 
 
     def get_value(self) -> Dict[str, Any]:
-        # 返回处理后的统计信息，可以不包含原始 calls 列表以简化输出
+        # Return processed statistics, can exclude raw calls list to simplify output
         summary = {
             "total_tool_calls": self.total_tool_calls,
             "tools": {}
@@ -250,7 +251,7 @@ class ToolUsageMetric(BaseMetric):
                 "total_count": stats['total_count'],
                 "success_count": stats['success_count'],
                 "failure_count": stats['failure_count'],
-                # 可以选择性地添加最后一次调用的信息
+                # Optionally add last call information
                 "last_call": stats['calls'][-1] if stats['calls'] else None
             }
         return summary
