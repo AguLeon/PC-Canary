@@ -1,4 +1,5 @@
 # evaluator/core/result_collector.py
+import csv
 import os
 import time
 import json
@@ -29,6 +30,141 @@ from evaluator.core.metrics.overhead_metrics import ProcessingOverheadMetric
 from evaluator.core.metrics.token_efficiency_metrics import TokenEfficiencyMetric
 from evaluator.core.metrics.tool_hallucination_metrics import ToolHallucinationMetric
 from evaluator.core.metrics.loop_detection_metrics import LoopDetectionMetric
+from evaluator.core.metrics.throughput_metrics import ThroughputMetric
+
+
+def _parse_gpu_metrics_csv(
+    gpu_log_path: str,
+    start_ts: Optional[float] = None,
+    end_ts: Optional[float] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Parse a GPU metrics CSV file and compute aggregate statistics.
+
+    If start_ts/end_ts are provided, only rows within that time window are used.
+    This allows slicing a run-level GPU CSV to a specific task's duration.
+
+    Returns a dict with avg/max/min for GPU utilization, VRAM, temperature,
+    power draw, plus total energy consumption. Returns None if the file is
+    missing, empty, or cannot be parsed.
+    """
+    if not os.path.exists(gpu_log_path):
+        return None
+
+    try:
+        with open(gpu_log_path, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        if not rows:
+            return None
+
+        # Parse numeric columns, filtering by timestamp window if provided
+        timestamps = []
+        gpu_utils = []
+        vrams = []
+        temps = []
+        powers = []
+
+        for row in rows:
+            try:
+                ts = float(row["timestamp"])
+                if start_ts is not None and ts < start_ts:
+                    continue
+                if end_ts is not None and ts > end_ts:
+                    continue
+                timestamps.append(ts)
+                gpu_utils.append(float(row["gpu_util_pct"]))
+                vrams.append(float(row["vram_mb"]))
+                temps.append(float(row["temp_c"]))
+                powers.append(float(row["power_w"]))
+            except (ValueError, KeyError):
+                continue
+
+        if not timestamps:
+            return None
+
+        n = len(timestamps)
+
+        # Calculate energy: sum(power_watts * time_interval)
+        energy_joules = 0.0
+        for i in range(1, n):
+            dt = timestamps[i] - timestamps[i - 1]
+            energy_joules += powers[i] * dt
+
+        # Energy acceleration: break into halves (H1-H2) by sample count
+        half = n // 2
+        h_energy = [0.0, 0.0]
+        h_duration = [0.0, 0.0]
+        for i in range(1, n):
+            dt = timestamps[i] - timestamps[i - 1]
+            h = 0 if i <= half else 1
+            h_energy[h] += powers[i] * dt
+            h_duration[h] += dt
+        h_rate = [
+            round(h_energy[h] / h_duration[h], 2) if h_duration[h] > 0 else 0.0
+            for h in range(2)
+        ]
+        energy_rate_ratio_h2_h1 = (
+            round(h_rate[1] / h_rate[0], 4) if h_rate[0] > 0 else None
+        )
+
+        # Energy acceleration: break into quintiles (Q1-Q5) by sample count
+        num_q = 5
+        q_boundaries = [round(n * i / num_q) for i in range(num_q + 1)]
+        q_energy = [0.0] * num_q
+        q_duration = [0.0] * num_q
+        for i in range(1, n):
+            dt = timestamps[i] - timestamps[i - 1]
+            for q in range(num_q):
+                if q_boundaries[q] < i <= q_boundaries[q + 1]:
+                    q_energy[q] += powers[i] * dt
+                    q_duration[q] += dt
+                    break
+
+        q_rate = [
+            round(q_energy[q] / q_duration[q], 2) if q_duration[q] > 0 else 0.0
+            for q in range(num_q)
+        ]
+        # Ratio of Q4 avg power to Q2 avg power (skips Q1 startup and Q5 cooldown)
+        energy_rate_ratio_q4_q2 = (
+            round(q_rate[3] / q_rate[1], 4) if q_rate[1] > 0 else None
+        )
+
+        return {
+            "avg_gpu_util_pct": round(sum(gpu_utils) / n, 2),
+            "max_gpu_util_pct": round(max(gpu_utils), 2),
+            "min_gpu_util_pct": round(min(gpu_utils), 2),
+            "avg_vram_mb": round(sum(vrams) / n, 2),
+            "peak_vram_mb": round(max(vrams), 2),
+            "min_vram_mb": round(min(vrams), 2),
+            "avg_temp_c": round(sum(temps) / n, 2),
+            "max_temp_c": round(max(temps), 2),
+            "avg_power_w": round(sum(powers) / n, 2),
+            "max_power_w": round(max(powers), 2),
+            "total_energy_joules": round(energy_joules, 2),
+            "total_energy_kwh": round(energy_joules / 3_600_000, 8),
+            "energy_h1_joules": round(h_energy[0], 2),
+            "energy_h2_joules": round(h_energy[1], 2),
+            "avg_power_h1_w": h_rate[0],
+            "avg_power_h2_w": h_rate[1],
+            "energy_rate_ratio_h2_h1": energy_rate_ratio_h2_h1,
+            "energy_q1_joules": round(q_energy[0], 2),
+            "energy_q2_joules": round(q_energy[1], 2),
+            "energy_q3_joules": round(q_energy[2], 2),
+            "energy_q4_joules": round(q_energy[3], 2),
+            "energy_q5_joules": round(q_energy[4], 2),
+            "avg_power_q1_w": q_rate[0],
+            "avg_power_q2_w": q_rate[1],
+            "avg_power_q3_w": q_rate[2],
+            "avg_power_q4_w": q_rate[3],
+            "avg_power_q5_w": q_rate[4],
+            "energy_rate_ratio_q4_q2": energy_rate_ratio_q4_q2,
+            "sample_count": n,
+            "monitoring_duration_sec": round(timestamps[-1] - timestamps[0], 2),
+        }
+    except Exception:
+        return None
 
 
 class ResultCollector:
@@ -97,6 +233,7 @@ class ResultCollector:
             TokenEfficiencyMetric,
             ToolHallucinationMetric,
             LoopDetectionMetric,
+            ThroughputMetric,
         ]
         for metric_cls in standard_metric_classes:
             try:
@@ -108,9 +245,7 @@ class ResultCollector:
                 )
             except Exception as e:
                 self.logger.error(
-                    f"Failed to register standard metric {metric_cls.__name__} (task {
-                        task_id
-                    }): {e}",
+                    f"Failed to register standard metric {metric_cls.__name__} (task {task_id}): {e}",
                     exc_info=True,
                 )
 
@@ -136,31 +271,17 @@ class ResultCollector:
                                 parsed_step_names[idx] = name
                             else:
                                 self.logger.warning(
-                                    f"Task {
-                                        task_id
-                                    } config has duplicate key step index {
-                                        idx
-                                    } in events, using first name '{
-                                        parsed_step_names[idx]
-                                    }'"
+                                    f"Task {task_id} config has duplicate key step index {idx} in events, using first name '{parsed_step_names[idx]}'"
                                 )
 
             if not parsed_step_names:
                 self.logger.warning(
-                    f"When registering KeyStepMetric for task {
-                        task_id
-                    }, no valid key_step definitions found in events config."
+                    f"When registering KeyStepMetric for task {task_id}, no valid key_step definitions found in events config."
                 )
             # Even without step_names, KeyStepMetric can still be registered as long as total_steps is valid
             elif len(parsed_step_names) != total_steps:
                 self.logger.warning(
-                    f"When registering KeyStepMetric for task {
-                        task_id
-                    }, configured total_key_steps ({
-                        total_steps
-                    }) does not match the number of key_steps defined in events ({
-                        len(parsed_step_names)
-                    })."
+                    f"When registering KeyStepMetric for task {task_id}, configured total_key_steps ({total_steps}) does not match the number of key_steps defined in events ({len(parsed_step_names)})."
                 )
 
             try:
@@ -171,9 +292,7 @@ class ResultCollector:
                 )
                 metrics_to_register.append(instance)
                 self.logger.debug(
-                    f"Registered task-specific metric: {instance.get_name()} for task {
-                        task_id
-                    } (Total Steps: {total_steps}, Names: {parsed_step_names})"
+                    f"Registered task-specific metric: {instance.get_name()} for task {task_id} (Total Steps: {total_steps}, Names: {parsed_step_names})"
                 )
             except ValueError as ve:
                 self.logger.error(
@@ -181,16 +300,12 @@ class ResultCollector:
                 )
             except Exception as e:
                 self.logger.error(
-                    f"Unknown error occurred while registering KeyStepMetric (task {
-                        task_id
-                    }): {e}",
+                    f"Unknown error occurred while registering KeyStepMetric (task {task_id}): {e}",
                     exc_info=True,
                 )
         else:
             self.logger.info(
-                f"Valid total_key_steps > 0 not found in task {
-                    task_id
-                } config, skipping KeyStepMetric registration."
+                f"Valid total_key_steps > 0 not found in task {task_id} config, skipping KeyStepMetric registration."
             )
 
         # --- (Can add more logic for loading new specific metrics based on config) ---
@@ -198,9 +313,7 @@ class ResultCollector:
 
         self.registered_metrics[task_id] = metrics_to_register
         self.logger.info(
-            f"Metric registration for task {task_id} complete, total of {
-                len(metrics_to_register)
-            } metrics."
+            f"Metric registration for task {task_id} complete, total of {len(metrics_to_register)} metrics."
         )
 
     def start_session(
@@ -268,9 +381,7 @@ class ResultCollector:
         self.results[task_id]["raw_events"].append(raw_event_entry)
         # Reduce log redundancy, only record detailed data at DEBUG level
         self.logger.debug(
-            f"Recorded raw event: {task_id} - {event_type.name} - {
-                data if self.logger.isEnabledFor(logging.DEBUG) else '...'
-            }"
+            f"Recorded raw event: {task_id} - {event_type.name} - {data if self.logger.isEnabledFor(logging.DEBUG) else '...'}"
         )
 
         # --- 2. Distribute to metric handlers ---
@@ -282,9 +393,7 @@ class ResultCollector:
                 except Exception as e:
                     # Log error but continue processing other metrics
                     self.logger.error(
-                        f"Error while metric {metric.get_name()} was processing event {
-                            event_type.name
-                        } (task {task_id}): {e}",
+                        f"Error while metric {metric.get_name()} was processing event {event_type.name} (task {task_id}): {e}",
                         exc_info=True,
                     )
         else:
@@ -315,17 +424,11 @@ class ResultCollector:
                     computed_metrics[metric_name] = metric_value
                     # Reduce log redundancy, only record each value at DEBUG level
                     self.logger.debug(
-                        f"Metric calculation complete ({task_id}): {metric_name} = {
-                            metric_value
-                            if self.logger.isEnabledFor(logging.DEBUG)
-                            else '...'
-                        }"
+                        f"Metric calculation complete ({task_id}): {metric_name} = {metric_value if self.logger.isEnabledFor(logging.DEBUG) else '...'}"
                     )
                 except Exception as e:
                     self.logger.error(
-                        f"Error getting value for metric {metric_name} (task {
-                            task_id
-                        }): {e}",
+                        f"Error getting value for metric {metric_name} (task {task_id}): {e}",
                         exc_info=True,
                     )
                     computed_metrics[metric_name] = (
@@ -376,9 +479,7 @@ class ResultCollector:
             metadata.update(session_data)
 
         self.logger.info(
-            f"Task session ended: {task_id}. Total duration: {
-                duration if duration is not None else 'N/A'
-            } seconds"
+            f"Task session ended: {task_id}. Total duration: {duration if duration is not None else 'N/A'} seconds"
         )
 
     def get_results(self, task_id: Optional[str] = None) -> Dict[str, Any]:
@@ -416,9 +517,7 @@ class ResultCollector:
             or not self.registered_metrics[task_id]
         ):
             self.logger.warning(
-                f"Failed to get current metrics, task {
-                    task_id
-                } does not exist or has no registered metrics."
+                f"Failed to get current metrics, task {task_id} does not exist or has no registered metrics."
             )
             return {}
 
@@ -434,17 +533,11 @@ class ResultCollector:
                 current_metrics[metric_name] = metric_value
                 # Reduce log redundancy, only record each value at DEBUG level
                 self.logger.debug(
-                    f"Current metric calculation ({task_id}): {metric_name} = {
-                        metric_value
-                        if self.logger.isEnabledFor(logging.DEBUG)
-                        else '...'
-                    }"
+                    f"Current metric calculation ({task_id}): {metric_name} = {metric_value if self.logger.isEnabledFor(logging.DEBUG) else '...'}"
                 )
             except Exception as e:
                 self.logger.error(
-                    f"Error getting current value for metric {metric_name} (task {
-                        task_id
-                    }): {e}",
+                    f"Error getting current value for metric {metric_name} (task {task_id}): {e}",
                     exc_info=True,
                 )
                 current_metrics[metric_name] = (
@@ -471,7 +564,7 @@ class ResultCollector:
         """
         timestamp_str = time.strftime("%Y%m%d_%H%M%S")
         # Extract model name and infrastructure tag from environment
-        model_name = os.environ.get("MODEL", "unknown").replace(":", "-")
+        model_name = os.environ.get("MODEL", "unknown").replace(":", "-").replace("/", "_")
         infrastructure_tag = os.environ.get("INFRASTRUCTURE_TAG", "")
         infrastructure_suffix = f"_{infrastructure_tag}" if infrastructure_tag else ""
         file_path = ""
@@ -497,6 +590,51 @@ class ResultCollector:
                 data_to_save = dict(self.results)  # Save snapshot of all results
                 log_msg = f"All task results saved: {file_path}"
 
+            # Inject GPU hardware metrics if a matching CSV exists
+            if task_id is not None:
+                # Get task start/end timestamps for slicing the GPU CSV
+                metadata = data_to_save.get("metadata", {})
+                task_start = metadata.get("session_start_unix")
+                task_end = metadata.get("session_end_unix")
+
+                # Search for gpu_metrics_*.csv in output dir, ancestors,
+                # and a gpu_logs/ subfolder under each ancestor
+                search_dirs = [self.output_dir]
+                parent = os.path.dirname(self.output_dir)
+                if parent:
+                    search_dirs.append(parent)
+                    gpu_logs = os.path.join(parent, "gpu_logs")
+                    if os.path.isdir(gpu_logs):
+                        search_dirs.append(gpu_logs)
+                grandparent = os.path.dirname(parent) if parent else None
+                if grandparent:
+                    search_dirs.append(grandparent)
+                    gpu_logs = os.path.join(grandparent, "gpu_logs")
+                    if os.path.isdir(gpu_logs):
+                        search_dirs.append(gpu_logs)
+
+                for search_dir in search_dirs:
+                    if not os.path.isdir(search_dir):
+                        continue
+                    for fname in os.listdir(search_dir):
+                        if fname.startswith("gpu_metrics_") and fname.endswith(".csv"):
+                            gpu_csv_path = os.path.join(search_dir, fname)
+                            gpu_metrics = _parse_gpu_metrics_csv(
+                                gpu_csv_path,
+                                start_ts=task_start,
+                                end_ts=task_end,
+                            )
+                            if gpu_metrics:
+                                data_to_save["gpu_hardware_metrics"] = gpu_metrics
+                                self.logger.info(
+                                    f"Added GPU hardware metrics from {fname} "
+                                    f"({gpu_metrics['sample_count']} samples, "
+                                    f"sliced to task window)"
+                                )
+                                break
+                    if "gpu_hardware_metrics" in data_to_save:
+                        break
+
             with open(file_path, "w", encoding="utf-8") as f:
                 # Use default=str to handle non-serializable types (e.g., Enum members if they end up in data)
                 json.dump(data_to_save, f, indent=2, ensure_ascii=False, default=str)
@@ -505,9 +643,7 @@ class ResultCollector:
             return file_path
         except TypeError as te:
             self.logger.error(
-                f"Serialization error occurred while saving results to {file_path}: {
-                    te
-                }. Ensure metric get_value() returns JSON-compatible types.",
+                f"Serialization error occurred while saving results to {file_path}: {te}. Ensure metric get_value() returns JSON-compatible types.",
                 exc_info=True,
             )
             return ""
