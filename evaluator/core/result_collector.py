@@ -31,6 +31,7 @@ from evaluator.core.metrics.token_efficiency_metrics import TokenEfficiencyMetri
 from evaluator.core.metrics.tool_hallucination_metrics import ToolHallucinationMetric
 from evaluator.core.metrics.loop_detection_metrics import LoopDetectionMetric
 from evaluator.core.metrics.throughput_metrics import ThroughputMetric
+from evaluator.core.metrics.tool_confidence_metrics import ToolConfidenceMetric
 
 
 def _parse_gpu_metrics_csv(
@@ -65,6 +66,8 @@ def _parse_gpu_metrics_csv(
         vrams = []
         temps = []
         powers = []
+        cpu_pcts = []
+        cpu_mems = []
 
         for row in rows:
             try:
@@ -74,10 +77,22 @@ def _parse_gpu_metrics_csv(
                 if end_ts is not None and ts > end_ts:
                     continue
                 timestamps.append(ts)
-                gpu_utils.append(float(row["gpu_util_pct"]))
-                vrams.append(float(row["vram_mb"]))
-                temps.append(float(row["temp_c"]))
-                powers.append(float(row["power_w"]))
+                # GPU columns may be empty on CPU-only hosts
+                gpu_str = row.get("gpu_util_pct", "").strip()
+                vram_str = row.get("vram_mb", "").strip()
+                temp_str = row.get("temp_c", "").strip()
+                power_str = row.get("power_w", "").strip()
+                gpu_utils.append(float(gpu_str) if gpu_str else 0.0)
+                vrams.append(float(vram_str) if vram_str else 0.0)
+                temps.append(float(temp_str) if temp_str else 0.0)
+                powers.append(float(power_str) if power_str else 0.0)
+                # CPU columns are optional (backward compat with old CSVs)
+                cpu_str = row.get("container_cpu_pct", "")
+                mem_str = row.get("container_mem_mb", "")
+                if cpu_str:
+                    cpu_pcts.append(float(cpu_str))
+                if mem_str:
+                    cpu_mems.append(float(mem_str))
             except (ValueError, KeyError):
                 continue
 
@@ -131,6 +146,32 @@ def _parse_gpu_metrics_csv(
             round(q_rate[3] / q_rate[1], 4) if q_rate[1] > 0 else None
         )
 
+        # VRAM usage: halves (H1-H2) by sample count
+        vram_h = [[], []]
+        for i in range(n):
+            h = 0 if i < half else 1
+            vram_h[h].append(vrams[i])
+        vram_h_avg = [
+            round(sum(v) / len(v), 2) if v else 0.0 for v in vram_h
+        ]
+        vram_ratio_h2_h1 = (
+            round(vram_h_avg[1] / vram_h_avg[0], 4) if vram_h_avg[0] > 0 else None
+        )
+
+        # VRAM usage: quintiles (Q1-Q5) by sample count
+        vram_q = [[] for _ in range(num_q)]
+        for i in range(n):
+            for q in range(num_q):
+                if q_boundaries[q] <= i < q_boundaries[q + 1]:
+                    vram_q[q].append(vrams[i])
+                    break
+        vram_q_avg = [
+            round(sum(v) / len(v), 2) if v else 0.0 for v in vram_q
+        ]
+        vram_ratio_q4_q2 = (
+            round(vram_q_avg[3] / vram_q_avg[1], 4) if vram_q_avg[1] > 0 else None
+        )
+
         return {
             "avg_gpu_util_pct": round(sum(gpu_utils) / n, 2),
             "max_gpu_util_pct": round(max(gpu_utils), 2),
@@ -160,8 +201,21 @@ def _parse_gpu_metrics_csv(
             "avg_power_q4_w": q_rate[3],
             "avg_power_q5_w": q_rate[4],
             "energy_rate_ratio_q4_q2": energy_rate_ratio_q4_q2,
+            "avg_vram_h1_mb": vram_h_avg[0],
+            "avg_vram_h2_mb": vram_h_avg[1],
+            "vram_ratio_h2_h1": vram_ratio_h2_h1,
+            "avg_vram_q1_mb": vram_q_avg[0],
+            "avg_vram_q2_mb": vram_q_avg[1],
+            "avg_vram_q3_mb": vram_q_avg[2],
+            "avg_vram_q4_mb": vram_q_avg[3],
+            "avg_vram_q5_mb": vram_q_avg[4],
+            "vram_ratio_q4_q2": vram_ratio_q4_q2,
             "sample_count": n,
             "monitoring_duration_sec": round(timestamps[-1] - timestamps[0], 2),
+            "avg_container_cpu_pct": round(sum(cpu_pcts) / len(cpu_pcts), 2) if cpu_pcts else None,
+            "max_container_cpu_pct": round(max(cpu_pcts), 2) if cpu_pcts else None,
+            "avg_container_mem_mb": round(sum(cpu_mems) / len(cpu_mems), 2) if cpu_mems else None,
+            "peak_container_mem_mb": round(max(cpu_mems), 2) if cpu_mems else None,
         }
     except Exception:
         return None
@@ -234,6 +288,7 @@ class ResultCollector:
             ToolHallucinationMetric,
             LoopDetectionMetric,
             ThroughputMetric,
+            ToolConfidenceMetric,
         ]
         for metric_cls in standard_metric_classes:
             try:
