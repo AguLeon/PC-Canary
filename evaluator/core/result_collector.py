@@ -229,6 +229,7 @@ class ResultCollector:
         now = time.time()
         # Extract model info from environment
         model_name = os.environ.get("MODEL", "unknown")
+        temperature: float | None = float(os.environ.get("LLM_temperature", 0.7))  # If not given, assume the default temperature is 0.7
         infrastructure_tag = os.environ.get("INFRASTRUCTURE_TAG", "")
 
         self.results[task_id]["metadata"] = {
@@ -237,6 +238,7 @@ class ResultCollector:
             ),
             "session_start_unix": now,
             "model_name": model_name,  # Add model name
+            "temperature": temperature,  # Add temperature
             "infrastructure_tag": infrastructure_tag,  # Add infrastructure tag
             "task_config_at_start": task_config,  # Store task config snapshot
             **session_data,  # Merge in passed metadata
