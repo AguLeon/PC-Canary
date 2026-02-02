@@ -364,7 +364,8 @@ class IpcInjector:
                     bash_cmd,
                     stdout=subprocess.PIPE,
                     stderr=None,  # Let stderr pass through to terminal
-                    env=env
+                    env=env,
+                    preexec_fn=os.setsid,  # Create process group for clean shutdown
                 )
 
                 self.logger.info(f"Application started successfully, Process ID: {self.app_process.pid}")
@@ -455,28 +456,45 @@ class IpcInjector:
         return True
     
     def stop_app(self) -> None:
-        # Stop the application process
+        # Stop the application process and all its children (process group)
         if hasattr(self, 'app_process') and self.app_process:
             try:
-                self.logger.info(f"Attempting to gracefully terminate application process (PID: {self.app_process.pid})")
+                pid = self.app_process.pid
+                self.logger.info(f"Attempting to terminate process group for PID: {pid}")
 
-                # Send SIGTERM signal to inform the app to close
-                self.app_process.send_signal(signal.SIGTERM)
-                self.logger.info("SIGTERM signal sent, waiting for application response...")
-
-                # Wait for the application to close itself
                 try:
-                    self.app_process.wait(timeout=10)  # Wait for 10 seconds
-                    self.logger.info("Application process closed on its own")
+                    pgid = os.getpgid(pid)
+                except ProcessLookupError:
+                    self.logger.info("Process already dead, skipping termination")
+                    return
+
+                # SIGTERM the entire process group
+                try:
+                    os.killpg(pgid, signal.SIGTERM)
+                    self.logger.info(f"SIGTERM sent to process group {pgid}, waiting...")
+                except ProcessLookupError:
+                    self.logger.info("Process group already dead after SIGTERM")
+                    return
+
+                # Wait for main process to exit
+                try:
+                    self.app_process.wait(timeout=10)
+                    self.logger.info("Application process group terminated gracefully")
                 except subprocess.TimeoutExpired:
-                    self.logger.warning("Application did not close within the expected time, attempting to terminate()")
-                    self.app_process.terminate()
+                    self.logger.warning("Process group did not exit in time, sending SIGKILL")
                     try:
+                        os.killpg(pgid, signal.SIGKILL)
                         self.app_process.wait(timeout=5)
-                        self.logger.info("Application process terminated successfully via terminate()")
+                        self.logger.info("Application process group forcibly killed")
+                    except ProcessLookupError:
+                        self.logger.info("Process group already dead after SIGKILL")
                     except subprocess.TimeoutExpired:
-                        self.logger.warning("Application could not close via terminate(), attempting to kill()")
-                        self.app_process.kill()
-                        self.logger.info("Application process forcibly terminated via kill()")
+                        self.logger.error("Process group did not die even after SIGKILL")
             except Exception as e:
                 self.logger.error(f"Error while terminating the application process: {str(e)}")
+
+            # Cooldown: let OS fully reclaim resources (file handles, shm, locks)
+            print("[stop_app] Post-termination cooldown (5s)...", flush=True)
+            self.logger.info("Post-termination cooldown (5s)...")
+            time.sleep(5)
+            print("[stop_app] Cooldown complete.", flush=True)

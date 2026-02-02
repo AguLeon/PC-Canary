@@ -513,7 +513,7 @@ class BaseEvaluator:
                     # Optionally clear VSCode user storage after restore
                     # Only execute if explicitly enabled and path looks like VSCode user_data_dir
                     if (
-                        self.config.get('clear_vscode_storage_on_restore', False)
+                        self.config.get('clear_vscode_storage_on_restore', True)
                         and 'vscode' in to_path.lower()
                         and 'user_data_dir' in to_path.lower()
                     ):
