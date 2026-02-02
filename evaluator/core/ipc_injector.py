@@ -359,27 +359,41 @@ class IpcInjector:
                 bash_cmd = ['/bin/bash'] + cmd
                 self.logger.debug(f"Actual command to execute: {' '.join(bash_cmd)}")
 
-                # Don't capture stderr so DEBUG messages go to terminal/logs immediately
-                self.app_process = subprocess.Popen(
-                    bash_cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=None,  # Let stderr pass through to terminal
-                    env=env,
-                    preexec_fn=os.setsid,  # Create process group for clean shutdown
-                )
+                # Retry loop for intermittent SIGSEGV crashes on Electron startup
+                max_retries = 3
+                for attempt in range(1, max_retries + 1):
+                    # Don't capture stderr so DEBUG messages go to terminal/logs immediately
+                    self.app_process = subprocess.Popen(
+                        bash_cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=None,  # Let stderr pass through to terminal
+                        env=env,
+                        preexec_fn=os.setsid,  # Create process group for clean shutdown
+                    )
 
-                self.logger.info(f"Application started successfully, Process ID: {self.app_process.pid}")
+                    self.logger.info(f"Application started (attempt {attempt}/{max_retries}), PID: {self.app_process.pid}")
 
-                # Check process status immediately
-                time.sleep(0.5)
-                poll_result = self.app_process.poll()
-                if poll_result is not None:
-                    stdout, _ = self.app_process.communicate(timeout=1)
-                    self.logger.error(f"Process exited immediately, return code: {poll_result}")
-                    self.logger.error(f"STDOUT: {stdout.decode('utf-8', errors='ignore') if stdout else '(empty)'}")
-                    self.logger.error("STDERR: (not captured, check terminal output)")
-                else:
-                    self.logger.debug(f"Process still running (PID: {self.app_process.pid})")
+                    # Check process status immediately
+                    time.sleep(0.5)
+                    poll_result = self.app_process.poll()
+                    if poll_result is not None:
+                        stdout, _ = self.app_process.communicate(timeout=1)
+                        self.logger.error(f"Process exited immediately, return code: {poll_result}")
+                        self.logger.error(f"STDOUT: {stdout.decode('utf-8', errors='ignore') if stdout else '(empty)'}")
+                        self.logger.error("STDERR: (not captured, check terminal output)")
+                        if attempt < max_retries:
+                            print(f"[start_app] App crashed on startup (attempt {attempt}/{max_retries}), retrying in 3s...", flush=True)
+                            self.logger.warning(f"App crashed on startup (attempt {attempt}/{max_retries}), retrying in 3s...")
+                            time.sleep(3)
+                            continue
+                        else:
+                            print(f"[start_app] App crashed on all {max_retries} attempts, giving up.", flush=True)
+                            self.logger.error(f"App crashed on all {max_retries} startup attempts")
+                            self.app_started = True
+                            return False
+                    else:
+                        self.logger.debug(f"Process still running (PID: {self.app_process.pid})")
+                    break  # Running successfully
 
                 # Wait for the application window to load
                 self.logger.info("Waiting for the application window to load...")

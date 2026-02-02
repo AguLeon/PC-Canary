@@ -524,7 +524,22 @@ class BaseEvaluator:
                 self.logger.error(f"Failed to restore user data: {str(e)}")
                 return False
             self.logger.info("User data successfully restored")
-            self.start_app()
+            if not self.start_app():
+                self.logger.error("Application failed to start after retries, saving stopped result")
+                # Start a minimal session so we can save a result JSON
+                session_data = {
+                    "app_path": self.hook_manager.app_path,
+                    "app_process_pid": None,
+                }
+                self.result_collector.start_session(self.task_id, session_data, self.config)
+                self.result_collector.results[self.task_id]["computed_metrics"] = {
+                    "task_completion_status": {
+                        "status": "stopped",
+                        "reason": "App crashed on startup (SIGSEGV) after 3 retries",
+                    }
+                }
+                self.save_results()
+                return False
 
         try:
             self.is_running = True
