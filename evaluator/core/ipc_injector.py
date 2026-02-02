@@ -373,8 +373,8 @@ class IpcInjector:
 
                     self.logger.info(f"Application started (attempt {attempt}/{max_retries}), PID: {self.app_process.pid}")
 
-                    # Check process status immediately
-                    time.sleep(0.5)
+                    # Wait for potential SIGSEGV crash before checking status
+                    time.sleep(2)
                     poll_result = self.app_process.poll()
                     if poll_result is not None:
                         stdout, _ = self.app_process.communicate(timeout=1)
