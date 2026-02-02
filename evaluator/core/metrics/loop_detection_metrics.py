@@ -41,12 +41,12 @@ class LoopDetectionMetric(BaseMetric):
             self.current_turn += 1
             self.logger.debug(f"Starting turn {self.current_turn}")
 
-        elif event_type == AgentEvent.TOOL_CALL_END:
+        elif event_type == AgentEvent.AGENT_ERROR_OCCURRED:
             # Check if this is a loop detection event
             tool_name = data.get('tool_name')
 
             if tool_name == 'loop_detection':
-                loop_description = data.get('result', 'Unknown loop pattern')
+                loop_description = data.get('stack_trace', 'Unknown loop pattern')
 
                 self.logger.info(
                     f"LOOP DETECTED in turn {self.current_turn}: {loop_description}"
