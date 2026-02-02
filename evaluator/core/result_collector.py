@@ -633,14 +633,14 @@ class ResultCollector:
                     return ""
                 file_path = os.path.join(
                     self.output_dir,
-                    f"{filename_prefix}_{model_name}{infrastructure_suffix}_{task_id}_{timestamp_str}.json",
+                    f"{filename_prefix}_{timestamp_str}_{model_name}{infrastructure_suffix}_{task_id}.json",
                 )
                 data_to_save = self.results[task_id]
                 log_msg = f"Results for task {task_id} saved: {file_path}"
             else:
                 file_path = os.path.join(
                     self.output_dir,
-                    f"{filename_prefix}_{model_name}{infrastructure_suffix}_all_{timestamp_str}.json",
+                    f"{filename_prefix}_{timestamp_str}_{model_name}{infrastructure_suffix}_all.json",
                 )
                 data_to_save = dict(self.results)  # Save snapshot of all results
                 log_msg = f"All task results saved: {file_path}"
