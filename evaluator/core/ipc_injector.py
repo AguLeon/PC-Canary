@@ -359,26 +359,41 @@ class IpcInjector:
                 bash_cmd = ['/bin/bash'] + cmd
                 self.logger.debug(f"Actual command to execute: {' '.join(bash_cmd)}")
 
-                # Don't capture stderr so DEBUG messages go to terminal/logs immediately
-                self.app_process = subprocess.Popen(
-                    bash_cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=None,  # Let stderr pass through to terminal
-                    env=env
-                )
+                # Retry loop for intermittent SIGSEGV crashes on Electron startup
+                max_retries = 3
+                for attempt in range(1, max_retries + 1):
+                    # Don't capture stderr so DEBUG messages go to terminal/logs immediately
+                    self.app_process = subprocess.Popen(
+                        bash_cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=None,  # Let stderr pass through to terminal
+                        env=env,
+                        preexec_fn=os.setsid,  # Create process group for clean shutdown
+                    )
 
-                self.logger.info(f"Application started successfully, Process ID: {self.app_process.pid}")
+                    self.logger.info(f"Application started (attempt {attempt}/{max_retries}), PID: {self.app_process.pid}")
 
-                # Check process status immediately
-                time.sleep(0.5)
-                poll_result = self.app_process.poll()
-                if poll_result is not None:
-                    stdout, _ = self.app_process.communicate(timeout=1)
-                    self.logger.error(f"Process exited immediately, return code: {poll_result}")
-                    self.logger.error(f"STDOUT: {stdout.decode('utf-8', errors='ignore') if stdout else '(empty)'}")
-                    self.logger.error("STDERR: (not captured, check terminal output)")
-                else:
-                    self.logger.debug(f"Process still running (PID: {self.app_process.pid})")
+                    # Wait for potential SIGSEGV crash before checking status
+                    time.sleep(2)
+                    poll_result = self.app_process.poll()
+                    if poll_result is not None:
+                        stdout, _ = self.app_process.communicate(timeout=1)
+                        self.logger.error(f"Process exited immediately, return code: {poll_result}")
+                        self.logger.error(f"STDOUT: {stdout.decode('utf-8', errors='ignore') if stdout else '(empty)'}")
+                        self.logger.error("STDERR: (not captured, check terminal output)")
+                        if attempt < max_retries:
+                            print(f"[start_app] App crashed on startup (attempt {attempt}/{max_retries}), retrying in 3s...", flush=True)
+                            self.logger.warning(f"App crashed on startup (attempt {attempt}/{max_retries}), retrying in 3s...")
+                            time.sleep(3)
+                            continue
+                        else:
+                            print(f"[start_app] App crashed on all {max_retries} attempts, giving up.", flush=True)
+                            self.logger.error(f"App crashed on all {max_retries} startup attempts")
+                            self.app_started = True
+                            return False
+                    else:
+                        self.logger.debug(f"Process still running (PID: {self.app_process.pid})")
+                    break  # Running successfully
 
                 # Wait for the application window to load
                 self.logger.info("Waiting for the application window to load...")
@@ -455,28 +470,45 @@ class IpcInjector:
         return True
     
     def stop_app(self) -> None:
-        # Stop the application process
+        # Stop the application process and all its children (process group)
         if hasattr(self, 'app_process') and self.app_process:
             try:
-                self.logger.info(f"Attempting to gracefully terminate application process (PID: {self.app_process.pid})")
+                pid = self.app_process.pid
+                self.logger.info(f"Attempting to terminate process group for PID: {pid}")
 
-                # Send SIGTERM signal to inform the app to close
-                self.app_process.send_signal(signal.SIGTERM)
-                self.logger.info("SIGTERM signal sent, waiting for application response...")
-
-                # Wait for the application to close itself
                 try:
-                    self.app_process.wait(timeout=10)  # Wait for 10 seconds
-                    self.logger.info("Application process closed on its own")
+                    pgid = os.getpgid(pid)
+                except ProcessLookupError:
+                    self.logger.info("Process already dead, skipping termination")
+                    return
+
+                # SIGTERM the entire process group
+                try:
+                    os.killpg(pgid, signal.SIGTERM)
+                    self.logger.info(f"SIGTERM sent to process group {pgid}, waiting...")
+                except ProcessLookupError:
+                    self.logger.info("Process group already dead after SIGTERM")
+                    return
+
+                # Wait for main process to exit
+                try:
+                    self.app_process.wait(timeout=10)
+                    self.logger.info("Application process group terminated gracefully")
                 except subprocess.TimeoutExpired:
-                    self.logger.warning("Application did not close within the expected time, attempting to terminate()")
-                    self.app_process.terminate()
+                    self.logger.warning("Process group did not exit in time, sending SIGKILL")
                     try:
+                        os.killpg(pgid, signal.SIGKILL)
                         self.app_process.wait(timeout=5)
-                        self.logger.info("Application process terminated successfully via terminate()")
+                        self.logger.info("Application process group forcibly killed")
+                    except ProcessLookupError:
+                        self.logger.info("Process group already dead after SIGKILL")
                     except subprocess.TimeoutExpired:
-                        self.logger.warning("Application could not close via terminate(), attempting to kill()")
-                        self.app_process.kill()
-                        self.logger.info("Application process forcibly terminated via kill()")
+                        self.logger.error("Process group did not die even after SIGKILL")
             except Exception as e:
                 self.logger.error(f"Error while terminating the application process: {str(e)}")
+
+            # Cooldown: let OS fully reclaim resources (file handles, shm, locks)
+            print("[stop_app] Post-termination cooldown (5s)...", flush=True)
+            self.logger.info("Post-termination cooldown (5s)...")
+            time.sleep(5)
+            print("[stop_app] Cooldown complete.", flush=True)

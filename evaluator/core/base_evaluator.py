@@ -59,13 +59,13 @@ class BaseEvaluator:
         self.task_category = task["category"]
         self.task_id = task["id"]
         self.log_dir = log_dir
-        self.session_id = time.strftime("%Y%m%d_%H%M%S")
-        self.session_dir = os.path.join(log_dir, self.session_id)
+        # Use log_dir directly without creating session subdirectory
+        self.session_dir = log_dir
 
         # Save custom parameters
         self.custom_params = custom_params or {}
 
-        # Create session directory
+        # Create output directory
         os.makedirs(self.session_dir, exist_ok=True)
 
         # Set up logger
@@ -241,6 +241,25 @@ class BaseEvaluator:
         self.result_collector.record_event(self.task_id, event_type, data)
         # Reduce redundant logging; debug level controlled by ResultCollector
         # self.logger.debug(f"Recorded event: {event_type.name} - {data}")
+
+    def set_available_tools(self, task_id: str, tool_names: List[str]) -> None:
+        """
+        Store the list of available tools for validation.
+
+        Args:
+            task_id: Task ID to associate tools with
+            tool_names: List of available tool names
+        """
+        if task_id in self.result_collector.results:
+            self.result_collector.results[task_id]['metadata']['available_tools'] = tool_names
+            self.logger.info(f"Stored {len(tool_names)} available tools for validation")
+
+            # Emit TOOLS_INITIALIZED event for metrics to consume
+            self.record_event(AgentEvent.TOOLS_INITIALIZED, {
+                'tool_names': tool_names
+            })
+        else:
+            self.logger.warning(f"Task ID {task_id} not found in results, cannot store available tools")
 
     def set_message_handler(self, module_path) -> None:
         # Attempt to import the corresponding handler module
@@ -494,7 +513,7 @@ class BaseEvaluator:
                     # Optionally clear VSCode user storage after restore
                     # Only execute if explicitly enabled and path looks like VSCode user_data_dir
                     if (
-                        self.config.get('clear_vscode_storage_on_restore', False)
+                        self.config.get('clear_vscode_storage_on_restore', True)
                         and 'vscode' in to_path.lower()
                         and 'user_data_dir' in to_path.lower()
                     ):
@@ -505,7 +524,22 @@ class BaseEvaluator:
                 self.logger.error(f"Failed to restore user data: {str(e)}")
                 return False
             self.logger.info("User data successfully restored")
-            self.start_app()
+            if not self.start_app():
+                self.logger.error("Application failed to start after retries, saving stopped result")
+                # Start a minimal session so we can save a result JSON
+                session_data = {
+                    "app_path": self.hook_manager.app_path,
+                    "app_process_pid": None,
+                }
+                self.result_collector.start_session(self.task_id, session_data, self.config)
+                self.result_collector.results[self.task_id]["computed_metrics"] = {
+                    "task_completion_status": {
+                        "status": "stopped",
+                        "reason": "App crashed on startup (SIGSEGV) after 3 retries",
+                    }
+                }
+                self.save_results()
+                return False
 
         try:
             self.is_running = True

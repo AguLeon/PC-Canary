@@ -57,7 +57,7 @@ def clear_vscode_user_storage(
         "Session Storage",
         "Local Storage",
         "Cookies",
-        "Cookies-journal"
+        "Cookies-journal",
     ]
     
     if logger is None:
