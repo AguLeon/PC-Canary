@@ -397,7 +397,7 @@ class ResultCollector:
         now = time.time()
         # Extract model info from environment
         model_name = os.environ.get("MODEL", "unknown")
-        temperature: float | None = float(os.environ.get("LLM_temperature", 0.7))  # If not given, assume the default temperature is 0.7
+        temperature: float | None = float(os.environ.get("LLM_TEMPERATURE", 0.7))  # If not given, assume the default temperature is 0.7
         infrastructure_tag = os.environ.get("INFRASTRUCTURE_TAG", "")
 
         self.results[task_id]["metadata"] = {
